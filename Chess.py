@@ -26,16 +26,16 @@ while not pick_difficulty:
         ai_difficulty = int(input("Which difficulty would you like to play against?\n1. Easy\n2. Medium\n3. Hard\n"))
         pick_difficulty = True
     except ValueError:
-        print("Unfortunately, that is not an option, please pick again.")
+        print("\nUnfortunately, that is not an option, please pick again.")
         pick_difficulty = False
 
 #picks color of user
 while not pick_color:
     try:
-        user_color = int(input("Which color would you like to play?\n1. White\n2. Black\n"))
+        user_color = int(input("\nWhich color would you like to play?\n1. White\n2. Black\n"))
         pick_color = True
     except ValueError:
-        print("Unfortunately, that is not an option, please pick again.")
+        print("\nUnfortunately, that is not an option, please pick again.")
         pick_color = False
 
 #prints initial board
