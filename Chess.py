@@ -3,10 +3,22 @@ from random import randint
 
 #initializes all the variables
 board = chess.Board()
+total_moves = []
 pick_color = False
 resign = False
 pick_difficulty = False
 print("Welcome to chess!")
+
+#function to print move list
+def print_move_list():
+    count = int(1)
+    move_list = ""
+    for m in total_moves :
+        if count % 2 == 1:
+            move_list += str(int(count / 2) + 1) + ". "
+        move_list += m + " "
+        count += 1
+    return move_list
 
 #pick AI difficulty
 while not pick_difficulty:
@@ -25,7 +37,9 @@ while not pick_color:
     except ValueError:
         print("Unfortunately, that is not an option, please pick again.")
         pick_color = False
+print("\nWhite to move\n")
 print(board)
+print("\n")
 
 #game info, AI moves, and user input for moves are selected here until game is over
 while not board.is_checkmate() or not board.is_stalemate() or not board.is_insufficient_material() or resign:
@@ -52,9 +66,15 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
                 count += 1
     elif ai_difficulty == 2:
         print("difficulty medium")
-        
+
 # pushes whatever move and continues the game
+    total_moves.append(board.san(move))
     board.push(move)
-    print(board)
-    if (((board.turn == chess.BLACK and user_color == 1) or (board.turn == chess.WHITE and user_color == 2) and input("Resign? Type Yes or No.".lower()) == "no")) :
+    if (user_color == 2 and board.turn == chess.BLACK) or (user_color == 1 and board.turn == chess.WHITE):
+        #TODO print whose turn it is
+        print(" turn to move\n")
+        print(board)
+        print("\n")
+    print(print_move_list())
+    if (((board.turn == chess.BLACK and user_color == 1) or (board.turn == chess.WHITE and user_color == 2) and input("Resign? Type Yes or No.").lower() == "no")) :
         resign = True
