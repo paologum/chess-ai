@@ -1,7 +1,7 @@
 import chess
 from random import randint
 
-#initializes all the variables
+# Initializes all the variables
 board = chess.Board()
 total_moves = []
 pick_color = False
@@ -9,7 +9,7 @@ resign = False
 pick_difficulty = False
 print("Welcome to chess!")
 
-#function to print move list
+# Function to print move list
 def print_move_list():
     count = int(1)
     move_list = ""
@@ -20,7 +20,7 @@ def print_move_list():
         count += 1
     return move_list + "\n\n========================"
 
-#pick AI difficulty
+# Pick AI difficulty
 while not pick_difficulty:
     try:
         ai_difficulty = int(input("Which difficulty would you like to play against?\n1. Easy\n2. Medium\n3. Hard\n"))
@@ -29,7 +29,7 @@ while not pick_difficulty:
         print("\nUnfortunately, that is not an option, please pick again.")
         pick_difficulty = False
 
-#picks color of user
+# Picks color of user
 while not pick_color:
     try:
         user_color = int(input("\nWhich color would you like to play?\n1. White\n2. Black\n"))
@@ -38,14 +38,14 @@ while not pick_color:
         print("\nUnfortunately, that is not an option, please pick again.")
         pick_color = False
 
-#prints initial board
+# Prints initial board
 print("\n========================")
 print("\nWhite to move\n")
 print(board)
 print("\n========================\n")
 
-#game info, AI moves, and user input for moves are selected here until game is over
-while not board.is_checkmate() or not board.is_stalemate() or not board.is_insufficient_material() or resign:
+# Game info, AI moves, and user input for moves are selected here until game is over
+while not resign:
     move = chess.Move.null()
     if ((board.turn == chess.WHITE and user_color == 1) or (board.turn == chess.BLACK and user_color == 2)) :
         while not move in board.legal_moves:
@@ -55,11 +55,11 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
                 move = board.parse_san(move)
             except ValueError:
                 move = chess.Move.null()
-                print("Invalid Input")
+                print("Invalid Input\n")
             if not move == chess.Move.null() and not move in board.legal_moves :
-                print("Invalid Input")
+                print("Invalid Input\n")
 
-    #AI moves for easy mode
+    # AI moves for easy mode
     elif ai_difficulty == 1:
         #TODO legal moves that work with pins, checks, etc
         random = randint(0, board.legal_moves.count() - 1)
@@ -75,9 +75,11 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
     elif ai_difficulty == 2:
         print("difficulty medium")
 
-# pushes whatever move and continues the game
+# Pushes whatever move and continues the game. Also prints the board along with turn descriptions
     total_moves.append(board.san(move))
     board.push(move)
+    if (board.is_checkmate() or board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition() or board.is_seventyfive_moves()) :
+        break
     if (board.turn == chess.BLACK):
         color = "Black's"
     else :
@@ -90,6 +92,18 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
     print(board)
     print()
     print(print_move_list())
-    if (((board.turn == chess.BLACK and user_color == 1) or (board.turn == chess.WHITE and user_color == 2) and input("Resign? Type Yes or No: ").lower() == "no")) :
+    if (((board.turn == chess.BLACK and user_color == 2) or (board.turn == chess.WHITE and user_color == 1) and input("Resign? Type Yes or No: ").lower() == "yes")) :
         print()
         resign = True
+    else :
+        print()
+
+# Handles the outcome of the game description
+if resign :
+    winner = "The computer won..."
+elif (board.outcome().winner and user_color == 1)or (not board.outcome().winner and user_color == 2):
+    winner = "You won!"
+else :
+    winner = "The computer won..."
+print(winner)
+print(board.outcome().result())
