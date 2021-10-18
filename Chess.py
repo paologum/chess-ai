@@ -5,7 +5,17 @@ from random import randint
 board = chess.Board()
 pick_color = False
 resign = False
+pick_difficulty = False
 print("Welcome to chess!")
+
+#pick AI difficulty
+while not pick_difficulty:
+    try:
+        ai_difficulty = int(input("Which difficulty would you like to play against?\n1. Easy\n2. Medium\n3. Hard\n"))
+        pick_difficulty = True
+    except ValueError:
+        print("Unfortunately, that is not an option, please pick again.")
+        pick_difficulty = False
 
 #picks color of user
 while not pick_color:
@@ -30,7 +40,8 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
                 print("Invalid Input")
             if not move == chess.Move.null() and not move in board.legal_moves :
                 print("Invalid Input")
-    else :
+    elif ai_difficulty == 1:
+        #TODO legal moves that work with pins, checks, etc
         random = randint(0, board.legal_moves.count())
         count = 0
         for legal_move in board.legal_moves :
@@ -39,6 +50,9 @@ while not board.is_checkmate() or not board.is_stalemate() or not board.is_insuf
                 break
             else :
                 count += 1
+    elif ai_difficulty == 2:
+        print("difficulty medium")
+        
 # pushes whatever move and continues the game
     board.push(move)
     print(board)
