@@ -155,8 +155,6 @@ def minimax(depth):
 # Alphabeta recursive function that prunes the trees that have worse evaluations 
 # (from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef)
 def alphabeta(alpha, beta, depthleft):
-    global total_moves_simulated
-    total_moves_simulated += 1
     best_score = -9999
     if (depthleft == 0):
         return quiesce(alpha, beta)
@@ -174,20 +172,23 @@ def alphabeta(alpha, beta, depthleft):
 
 # Evaluates depth = 0 and if the evaluation is stagnant, then evaluates next captures
 def quiesce(alpha, beta):
+    global total_moves_simulated
+    total_moves_simulated += 1
     evaluation = evaluate()
     if (evaluation >= beta):
         return beta
     if (alpha < evaluation):
         alpha = evaluation
-    for move in board.legal_moves:
-        if board.is_capture(move):
-            board.push(move)
-            evaluation = -quiesce(-beta, -alpha)
-            board.pop()
-    if (evaluation >= beta):
-            return beta
-    if (evaluation > alpha):
-        alpha = evaluation
+    #TODO What does this mean?
+    # for move in board.legal_moves:
+    #     if board.is_capture(move):
+    #         board.push(move)
+    #         evaluation = -quiesce(-beta, -alpha)
+    #         board.pop()
+    # if (evaluation >= beta):
+    #         return beta
+    # if (evaluation > alpha):
+    #     alpha = evaluation
     return alpha
 
 # Pick AI difficulty
@@ -256,6 +257,7 @@ while not resign:
     #TODO AI moves for medium difficulty (minimax and alpha beta pruning)
     elif ai_difficulty == 2:
         move = minimax(input_depth)
+        print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
 
 # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
     total_moves.append(board.san(move))
@@ -270,11 +272,9 @@ while not resign:
         color = "White's"
     if ((board.turn == chess.BLACK and user_color == 2) or (board.turn == chess.WHITE and user_color == 1)):
         ai_or_user = "(Your turn)"
-        simulated = ""
     else :
-        simulated = " Total moves simulated was " + str(total_moves_simulated)
         ai_or_user = "(Computer's turn)"
-    print(color + " turn to move " + ai_or_user + "." + simulated + "\n")
+    print(color + " turn to move " + ai_or_user + ".\n")
     print(board)
     print()
     print(print_move_list())
@@ -292,4 +292,5 @@ elif (board.outcome().winner and user_color == 1)or (not board.outcome().winner 
 else :
     winner = "The computer won..."
 print(winner)
-print(board.outcome().result())
+if not resign :
+    print(board.outcome().result())
