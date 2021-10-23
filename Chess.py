@@ -7,6 +7,7 @@ total_moves = []
 pick_color = False
 resign = False
 pick_difficulty = False
+total_moves_simulated = 0
 pawntable = [
     0, 0, 0, 0, 0, 0, 0, 0,
     5, 10, 10, -20, -20, 10, 10, 5,
@@ -132,6 +133,63 @@ def evaluate():
     else:
         return -eval
 
+# MiniMax function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
+def minimax(depth):
+    global total_moves_simulated
+    total_moves_simulated = 0
+    best_move = chess.Move.null()
+    best_value = -99999
+    alpha = -100000
+    beta = 100000
+    for some_move in board.legal_moves:
+        board.push(some_move)
+        board_value = -alphabeta(-beta, -alpha, depth - 1)
+        if board_value > best_value:
+            best_value = board_value
+            best_move = some_move
+        if (board_value > alpha):
+            alpha = board_value
+        board.pop()
+    return best_move
+
+# Alphabeta recursive function that prunes the trees that have worse evaluations 
+# (from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef)
+def alphabeta(alpha, beta, depthleft):
+    global total_moves_simulated
+    total_moves_simulated += 1
+    best_score = -9999
+    if (depthleft == 0):
+        return quiesce(alpha, beta)
+    for move in board.legal_moves:
+        board.push(move)
+        evaluation = -alphabeta(-beta, -alpha, depthleft - 1)
+        board.pop()
+        if (evaluation >= beta):
+            return evaluation
+        if (evaluation > best_score):
+            best_score = evaluation
+        if (evaluation > alpha):
+            alpha = evaluation
+    return best_score
+
+# Evaluates depth = 0 and if the evaluation is stagnant, then evaluates next captures
+def quiesce(alpha, beta):
+    evaluation = evaluate()
+    if (evaluation >= beta):
+        return beta
+    if (alpha < evaluation):
+        alpha = evaluation
+    for move in board.legal_moves:
+        if board.is_capture(move):
+            board.push(move)
+            evaluation = -quiesce(-beta, -alpha)
+            board.pop()
+    if (evaluation >= beta):
+            return beta
+    if (evaluation > alpha):
+        alpha = evaluation
+    return alpha
+
 # Pick AI difficulty
 while not pick_difficulty:
     try:
@@ -149,6 +207,18 @@ while not pick_color:
     except ValueError:
         print("\nUnfortunately, that is not an option, please pick again.")
         pick_color = False
+
+# Picks depth
+if ai_difficulty == 2 :
+    while True:
+        try:
+            input_depth = int(input("\nTo which depth would you like the computer to think to?\n"))
+            if (input_depth > 0) :
+                break
+            else:
+                print("\nUnfortunately, that is not an integer, please pick again.")
+        except ValueError:
+            print("\nUnfortunately, that is not an integer, please pick again.")
 
 # Prints initial board
 print("\n========================")
@@ -185,7 +255,7 @@ while not resign:
 
     #TODO AI moves for medium difficulty (minimax and alpha beta pruning)
     elif ai_difficulty == 2:
-        print("difficulty medium")
+        move = minimax(input_depth)
 
 # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
     total_moves.append(board.san(move))
@@ -200,9 +270,11 @@ while not resign:
         color = "White's"
     if ((board.turn == chess.BLACK and user_color == 2) or (board.turn == chess.WHITE and user_color == 1)):
         ai_or_user = "(Your turn)"
+        simulated = ""
     else :
+        simulated = " Total moves simulated was " + str(total_moves_simulated)
         ai_or_user = "(Computer's turn)"
-    print(color + " turn to move " + ai_or_user + "\n")
+    print(color + " turn to move " + ai_or_user + "." + simulated + "\n")
     print(board)
     print()
     print(print_move_list())
