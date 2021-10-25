@@ -11,7 +11,7 @@ total_moves = []
 pick_color = False
 resign = False
 pick_difficulty = False
-total_moves_simulated = 0
+total_moves_simulated = int(0)
 pawntable = [
     0, 0, 0, 0, 0, 0, 0, 0,
     5, 10, 10, -20, -20, 10, 10, 5,
@@ -131,13 +131,10 @@ def evaluate():
     eval = material + pawnsq + knightsq + bishopsq + rooksq + queensq + kingsq
 
     #returns the evaluation in favor of whoever's turn it is
-    if board.turn:
-        return eval
+    return eval
 
-# MiniMax function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
+# MiniMax function
 def minimax(depth):
-    global total_moves_simulated
-    total_moves_simulated = 0
     if depth == 0 :
         return evaluate()
     if board.turn :
@@ -156,6 +153,26 @@ def minimax(depth):
             board.pop()
             min_evaluation = min(evaluation, min_evaluation)
         return min_evaluation
+
+#Get a move from the minimax alogrithim
+def getmove(depth):
+    best_move = chess.Move.null()
+    if board.turn :
+        best_evaluation = -999999999
+    else :
+        best_evaluation = 999999999
+    for some_move in board.legal_moves:
+        board.push(some_move)
+        evaluation = minimax(depth - 1)
+        board.pop()
+        if board.turn and evaluation > best_evaluation:
+            best_evaluation = evaluation
+            best_move = some_move
+        elif not board.turn and evaluation < best_evaluation :
+            best_evaluation = evaluation
+            best_move = some_move
+    return best_move
+
 
 print("Welcome to chess!")
 while True:
@@ -256,7 +273,8 @@ if (menu_option == 1 or menu_option == 2) :
 
         #TODO AI moves for medium difficulty (minimax and alpha beta pruning)
         elif ai_difficulty == 2:
-            move = minimax(input_depth)
+            total_moves_simulated = 0
+            move = getmove(input_depth)
             print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
 
         # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
