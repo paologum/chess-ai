@@ -1,9 +1,7 @@
-from os import error
 import chess
 import chess.polyglot
 import chess.pgn
 from random import randint
-import io
 
 # Initializes all the variables
 board = chess.Board()
@@ -68,15 +66,17 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30]
 
 # Function to print move list
-def print_move_list():
+def printmovelist():
     count = int(1)
     move_list = ""
     for m in total_moves :
         if count % 2 == 1:
             move_list += str(int(count / 2) + 1) + ". "
         move_list += m + " "
+        if count % 20 == 0 :
+            move_list += "\n"
         count += 1
-    return move_list + "\n\n========================"
+    return move_list + "\n\n========================\n"
 
 
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
@@ -173,24 +173,78 @@ def getmove(depth):
             best_move = some_move
     return best_move
 
+#Applies minimax with an alpha beta pruning
+def alphabeta(depth, alpha, beta) :
+    if depth == 0 :
+        return evaluate()
+    if board.turn :
+        max_evaluation = -1000000000
+        for some_move in board.legal_moves :
+            board.push(some_move)
+            evaluation = alphabeta(depth - 1, alpha, beta)
+            board.pop()
+            max_evaluation = max(max_evaluation, evaluation)
+            alpha = max(alpha, evaluation)
+            if beta <= alpha :
+                break
+        return max_evaluation
+    else :
+        min_evaluation = 100000000000
+        for some_move in board.legal_moves :
+            board.push(some_move)
+            evaluation = alphabeta(depth - 1, alpha, beta)
+            beta = min(evaluation, beta)
+            board.pop()
+            min_evaluation = min(evaluation, min_evaluation)
+            if beta <= alpha :
+                break
+        return min_evaluation
+
+#Get a move from the minimax alogrithim
+def getmove(depth, alpha, beta):
+    best_move = chess.Move.null()
+    if board.turn :
+        best_evaluation = -999999999
+    else :
+        best_evaluation = 999999999
+    for some_move in board.legal_moves:
+        board.push(some_move)
+        evaluation = alphabeta(depth - 1, alpha, beta)
+        board.pop()
+        if board.turn and evaluation > best_evaluation:
+            best_evaluation = evaluation
+            best_move = some_move
+        elif not board.turn and evaluation < best_evaluation :
+            best_evaluation = evaluation
+            best_move = some_move
+    return best_move
+
 
 print("Welcome to chess!")
 while True:
     try :
-        menu_option = int(input("\nPick one of the three options.\n1. Play a game against and AI\n2. Play a game against an AI starting from a PGN string.\n3. Evaluate a position from a PGN string\n"))
-        break
-    except ValueError :
-        print("\nInvalid Value, Try Again\n")
+        menu_option = int(input("\nPick one of the three options.\n1. Play a game against and AI\n2. Play a game against an AI starting from a PGN file.\n"))
+        if (menu_option > 0 and menu_option < 3) :
+            break
+        else :
+            print("\nInvalid Value, Try Again")
+    except ValueError:
+        print("\nInvalid Value, Try Again")
+        menu_option = 0
 if (menu_option == 1 or menu_option == 2) :
     if (menu_option == 2) :
         need_new_board = False
         while (not need_new_board) :
             try : 
-                pgn = io.StringIO(input("\nInput your PGN string of moves: "))
-                board = chess.pgn.read_game(pgn)
+                file_name = (input("\nWhat is the file name of the PGN? (Do not input the added file extension and make sure the file is in the PGN folder): "))
+                pgn = open("PGN/" + file_name + ".pgn")
+                parsed_game = chess.pgn.read_game(pgn)
+                for some_move in parsed_game.mainline_moves():
+                    total_moves.append(board.san(some_move))
+                    board.push(some_move)
                 need_new_board = True
-            except ValueError :
-                print("\nInvalid PGN, try again\n")
+            except (FileNotFoundError, OSError):
+                print("\nInvalid PGN, try again")
                 need_new_board = False
     while not pick_difficulty:
         try:
@@ -200,7 +254,7 @@ if (menu_option == 1 or menu_option == 2) :
                 pick_difficulty = False
             else :
                 pick_difficulty = True
-        except ValueError:
+        except ValueError as e:
             print("\nUnfortunately, that is not an option, please pick again.\n")
             pick_difficulty = False
         
@@ -249,6 +303,7 @@ if (menu_option == 1 or menu_option == 2) :
                 try :
                     if (move.lower() == "resign") :
                         resign = True
+                        break
                     print()
                 except ValueError :
                     print()
@@ -271,10 +326,20 @@ if (menu_option == 1 or menu_option == 2) :
                 else :
                     count += 1
 
-        #TODO AI moves for medium difficulty (minimax and alpha beta pruning)
+        #AI moves for medium difficulty (minimax only) VERY SLOW
         elif ai_difficulty == 2:
+            print("Computer thinking....\n")
             total_moves_simulated = 0
             move = getmove(input_depth)
+            print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
+        #AI moves for hard difficulty (minimax alpha beta pruning) and library for openings of grandmasters
+        elif ai_difficulty == 3:
+            print("Computer thinking....\n")
+            total_moves_simulated = 0
+            try:
+                move = chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(board).move
+            except :
+                move = getmove(input_depth, -1000000000, 1000000000)
             print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
 
         # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
@@ -297,16 +362,20 @@ if (menu_option == 1 or menu_option == 2) :
         print(color + " turn to move " + ai_or_user + ".\n")
         print(board)
         print()
-        print(print_move_list())
+        print(printmovelist())
         
 
     # Handles the outcome of the game description
     if resign :
         winner = "The computer won..."
     elif (board.outcome().winner and user_color == 1)or (not board.outcome().winner and user_color == 2):
-        winner = "You won!"
+        winner = "You won!\n"
+        print(board)
+        print()
     else :
-        winner = "The computer won..."
+        winner = "The computer won...\n"
+        print(board)
+        print()
     print(winner)
     if not resign :
         print(board.outcome().result())

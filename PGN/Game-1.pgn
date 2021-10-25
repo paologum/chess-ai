@@ -1,0 +1,72 @@
+[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2021.06.18"]
+[Round "-"]
+[White "LANDERADRIAN"]
+[Black "Gloryends"]
+[Result "1-0"]
+[CurrentPosition "r3r1k1/pp3ppp/6n1/1q6/2bQ4/P1N5/1P1RB2P/4K2R w K -"]
+[Timezone "UTC"]
+[ECO "B10"]
+[ECOUrl "https://www.chess.com/openings/Caro-Kann-Defense"]
+[UTCDate "2021.06.18"]
+[UTCTime "19:11:00"]
+[WhiteElo "959"]
+[BlackElo "917"]
+[TimeControl "180"]
+[Termination "LANDERADRIAN won by resignation"]
+[StartTime "19:11:00"]
+[EndDate "2021.06.18"]
+[EndTime "19:16:37"]
+[Link "https://www.chess.com/game/live/17782340321"]
+
+1. e4 c6 2. f3 d5 3. exd5 cxd5 4. d3 e5 5. Bd2 $17 {INACCURACY (-2.40)} ({(-0.98)
+The best move was} 5. f4 exf4 6. Bxf4 Nf6 7. d4 Nc6 8. Nf3 Bd6 9. Bxd6 Qxd6 10.
+Nc3 O-O 11. Be2 Qb4 12. O-O Qxb2 13. Nb5 Bf5 14. Bd3 Qb4 15. Nc7 Rac8) 5... Nc6
+6. c4 dxc4 7. dxc4 Qh4+ {INACCURACY (-1.61)} ({(-2.51) The best move was} 7...
+Bc5 8. Nc3 Bf5 9. a3 Nf6 10. Bg5 Qd4 11. Qxd4 Nxd4 12. Rd1 Nc2+ 13. Ke2 O-O 14.
+b4 Bd4 15. Nb5 Bb2 16. Nd6 Bg6 17. Nxb7 Nxa3) 8. g3 Qh5 $12 9. Be2 $2 $17 {MISTAKE
+(-2.73)} ({(-1.17) The best move was} 9. Nc3 Nd4 10. Nd5 Bd6 11. Bc3 Ne7 12.
+Bxd4 exd4 13. Qxd4 Nxd5 14. Kf2 O-O 15. Qxd5 Qe5 16. Qxe5 Bxe5 17. Kg2 Bxb2 18.
+Rd1 Bf5 19. Ne2) 9... Nf6 10. f4 Qf5 11. g4 $2 {MISTAKE (-5.83)} ({(-2.67) The
+best move was} 11. Nc3 Bc5 12. Nf3 O-O 13. Nh4 Qh3 14. fxe5 Re8 15. Qa4 Nd4 16.
+O-O-O Bd7 17. Qa5 Rxe5 18. Bf1 Qe6 19. Bd3 Nc6 20. Qc7) 11... Qe4 12. Nf3 Nxg4 $4 $12 {BLUNDER (-0.59)} ({(-5.46) The best move was} 12... Nd4 13. Rf1 Nc2+ 14. Kf2
+Nxg4+ 15. Kg1 Nge3 16. Bxe3 Nxe3 17. Qa4+ Bd7 18. Qa5 Bd6 19. c5 Nxf1 20. Kxf1
+Bf8 21. Qc7 Qxf4 22. Qxe5+ Qxe5 23. Nxe5 Bh3+ 24. Kf2) 13. Nc3 Qg6 {Critical
+move.} 14. fxe5 $2 $17 {MISTAKE (-3.24)} ({(-0.64) The best move was} 14. h3 Qh5 15.
+Qa4 Bd7 16. Nb5 e4 17. O-O-O Nf2 18. Nfd4 Qc5 19. Be3 Nxd1 20. Nc7+ Kd8 21.
+Nde6+ fxe6 22. Bxc5 Bxc5 23. Nxa8 Nf2 24. Rf1 Rf8 25. Qb5 b6 26. Rxf2 Bxf2 27.
+Qg5+ Kc8 28. Qxg7 Rxf4) 14... Ngxe5 $2 $12 {MISTAKE (-0.51)} ({(-3.24) The best move
+was} 14... Bc5 15. Qb3 Bf2+ 16. Kd1 Nd4 17. Nxd4 Bxd4 18. Rf1 O-O 19. Nd5 Re8
+20. Bd3 Qc6 21. Kc2 Be6 22. Rae1 Nxe5 23. Rf4) 15. Nxe5 {Critical move.} 15...
+Nxe5 16. Nd5 Qc6 $2 {MISTAKE (+1.34) Critical mistake.} ({(-1.34) The best move
+was} 16... Bd6 17. Be3 Be6 18. Rg1 Qe4 19. Qd4 Nf3+ 20. Bxf3 Qxf3 21. Kd2 O-O-O
+22. Raf1 Qh5 23. Kc1 Rhe8 24. Re1 b6 25. Rxg7 Bc5 26. Qf4 Bxd5 27. cxd5 Bxe3+
+28. Rxe3) 17. Bf4 $4 $17 {BLUNDER (-2.48) Critical mistake.} ({(+1.34) The best
+move was} 17. Bc3 Bd6 18. Qd4 O-O 19. O-O-O f6 20. Rhf1 Be6 21. Nxf6+ Rxf6 22.
+Rxf6 gxf6 23. Qxd6 Qxd6 24. Rxd6 Bxc4 25. Bxc4+ Nxc4 26. Rd7 b6 27. Bxf6 Kf8 28.
+Rg7) 17... Bd6 $2 $12 {MISTAKE (+0.63) Critical mistake.} ({(-2.48) The best move
+was} 17... Bb4+ 18. Bd2 Be7 19. Bf4 Ng6 20. Rf1 Nxf4 21. Rxf4 Bd6 22. Qd2 O-O
+23. Rh4 Bf5 24. O-O-O Rae8 25. Bd3 Bg6 26. Bc2 Be7 27. Rg4 f5 28. Rxg6 hxg6 29.
+Kb1 Qxc4) 18. Qd4 Ng6 {Critical move.} 19. Qe4+ $2 {MISTAKE (-1.31)} ({(+0.61) The
+best move was} 19. Bxd6 Qxd6 20. O-O Be6 21. Rae1 Qd8 22. Qc5 Rc8 23. Qb4 Qd7
+24. Bg4 a5 25. Qb5 Qxb5 26. cxb5 O-O 27. Rxe6 fxe6 28. Bxe6+ Kh8 29. Bxc8 Rxc8)
+19... Be6 {Critical move.} 20. Bxd6 $17 Qxd6 21. Rd1 O-O $4 $16 {BLUNDER (+6.98)}
+({(-2.07) The best move was} 21... O-O-O 22. O-O Kb8 23. Bf3 Qe5 24. b3 Rhe8 25.
+Qd4 Qxd4+ 26. Rxd4 Ne5 27. Be4 Bxd5 28. cxd5 g6 29. d6 f5 30. Bg2 Re6 31. Rfd1
+Nf7 32. d7) 22. Nc3 $4 $17 {BLUNDER (-4.94) Critical mistake. From winning to
+losing.} ({(+6.98) The best move was} 22. Nf6+ gxf6 23. Rxd6 Rfe8 24. Qd4 b5 25.
+cxb5 Bxa2 26. Kf2 Bb3 27. h4 Re5 28. Bd3 Rh5 29. Rxf6 Bd5 30. Rg1 Kf8 31. Rgxg6
+hxg6) 22... Qb4 23. Rd2 Rfe8 {INACCURACY (-3.87)} ({(-5.32) The best move was}
+23... Rad8 24. a3 Qc5 25. h4 Bf5 26. Qxb7 Rxd2 27. Kxd2 Rd8+ 28. Nd5 Nf4 29. Ke1
+Nxd5 30. Qxd5 Rxd5 31. cxd5 Qc2 32. Rf1 Qc1+ 33. Kf2 Qxb2 34. d6) 24. Qd4 Bxc4
+{INACCURACY (-3.06)} ({(-4.09) The best move was} 24... Rac8 25. b3 Red8 26. Qe3
+Nh4 27. O-O Nf5 28. Rfd1 Rxd2 29. Qxd2 Qb6+ 30. Kh1 Ne3 31. Nd5 Bxd5+ 32. cxd5
+Nxd1 33. Bxd1 Qd6 34. Bf3 g6) 25. a3 $2 {MISTAKE (-5.13)} ({(-3.06) The best move
+was} 25. b3 Rac8 26. O-O Red8 27. Qxd8+ Rxd8 28. Rxd8+ Nf8 29. Bxc4 Qb6+ 30. Kh1
+Qxd8 31. Bd5 Kh8 32. Bg2 Qd2 33. Ne4 Qxa2 34. Nd6 f6 35. Nxb7 Nd7 36. b4) 25...
+Qb5 $4 $16 {BLUNDER (+5.28) From winning to losing.} ({(-5.13) The best move was}
+25... Qb3 26. O-O Bxe2 27. Nxe2 Ne5 28. Nc3 h6 29. Ne4 Rad8 30. Nf6+ gxf6 31.
+Qxd8 Rxd8 32. Rxd8+ Kg7 33. Rd6 Qe3+ 34. Kh1 Qe4+ 35. Kg1 f5 36. Rf2 f4 37. Rd8
+Kf6) (25... Qb5 26. Nxb5 Bxb5 27. Rf1 a6 28. Kf2 Bc6 29. Bf3 Ne5 30. Bxc6 Nxc6
+31. Qb6 Rad8 32. Rxd8 Nxd8 33. Re1 Rf8 34. Qc7 Ne6 35. Qxb7 a5) 1-0
