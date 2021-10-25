@@ -223,7 +223,7 @@ def getmove(depth, alpha, beta):
 print("Welcome to chess!")
 while True:
     try :
-        menu_option = int(input("\nPick one of the three options.\n1. Play a game against and AI\n2. Play a game against an AI starting from a PGN file.\n"))
+        menu_option = int(input("\nPick one of the three options.\n1. Play a game against an AI\n2. Play a game against an AI starting from a PGN file.\n"))
         if (menu_option > 0 and menu_option < 3) :
             break
         else :
