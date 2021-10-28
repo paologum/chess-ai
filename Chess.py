@@ -200,8 +200,8 @@ def alphabeta(depth, alpha, beta) :
                 break
         return min_evaluation
 
-#Get a move from the minimax alogrithim
-def getmove(depth, alpha, beta):
+#Get a move from the minimax alogrithim with alpha beta pruning
+def getmove_alphabeta(depth, alpha, beta):
     best_move = chess.Move.null()
     if board.turn :
         best_evaluation = -999999999
@@ -339,7 +339,7 @@ if (menu_option == 1 or menu_option == 2) :
             try:
                 move = chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(board).move
             except :
-                move = getmove(input_depth, -1000000000, 1000000000)
+                move = getmove_alphabeta(input_depth, -1000000000, 1000000000)
             print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
 
         # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
