@@ -45,7 +45,7 @@ for rank in board_gui:
         if column == 1:
             rank.append(sg.Text(text = rank_count))
         rank.append(sg.Button(size=(6,3), 
-        button_color=this_color, key = chr(column+64) + str(rank_count), border_width=0,
+        button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
         image_filename=image_file_path + image_name + image_file_type))
         column += 1
     rank_count += 1    
@@ -75,33 +75,41 @@ thisdict = {
 }
 def update_board(board):
     rank_strings = board.fen().split('/')
+    print(rank_strings)
     eight_rank = rank_strings[7].split(' ')
     rank_strings[7] = eight_rank[0]
-    print(rank_strings)
     rank_num = 8
     for rank in rank_strings:
-        print(rank)
-        count = 0
-        column_num = 0
+        column_num = 1
         for file in rank:
-            print(file)
-            if not count == 0:
-                count -= 1
-                column_num += 1
-                continue
+            if rank_num % 2 == 1 and column_num % 2 == 1:
+                    this_color = 'L'
+            elif rank_num % 2 == 0 and column_num % 2 == 0:
+                this_color = 'L'
+            else:
+                this_color = 'W'
             try :
                 count = int(file)
-                count -= 1
-                column_num += 1
+                while count > 0 :
+                    window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + 'blank' + image_file_type))
+                    count -= 1
+                    column_num += 1
+                    if this_color == 'L':
+                        this_color = 'W'
+                    else :
+                        this_color = 'L'
                 continue
             except ValueError:
-                window[(chr(column_num + 65) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
+                
+                window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
                 column_num += 1
         rank_num = rank_num - 1
-        print(str(rank_num))
         if rank_num == 0:
             break
 ai_diff = 'Not Picked'
+user_turn = True
+selected_square = ' '
+game = chess.Board()
 # Create the Window
 window = sg.Window('Chess', layout, element_justification='c')
 # Event Loop to process "events" and get the "values" of the inputs
@@ -114,12 +122,33 @@ while True:
         if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
             ai_diff = chosen_difficulty
             window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
-            temp_board = chess.Board()
-            update_board(temp_board)
+            update_board(game)
         elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
             sg.popup_notify('Game has started\n', 'Cannot choose a difficulty after the game has already started.',
             icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
             fade_in_duration=200)
+    elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn and event[int(0):int(4)] == 'tile':
+        window[event].update(button_color = 'RED')
+        selected_square = event
+    elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
+        sg.popup_notify('Game has not started\n', 'Choose a difficulty.',
+            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+            fade_in_duration=200)
+    elif not selected_square == ' ' and user_turn and event[int(0):int(4)] == 'tile':
+        try :
+            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
+            for move in game.legal_moves:
+                if uci_move == move:
+                    game.push(uci_move)
+                    update_board(game)
+        except ValueError:
+            print('Illegal Move')
+        if (selected_square[4:5] == 'L'):
+            button_color_thing = 'LIGHT GREEN'
+        else :
+            button_color_thing = "WHITE"
+        window[selected_square].update(button_color = button_color_thing)
+        selected_square = ' '
 
 
 window.close()
