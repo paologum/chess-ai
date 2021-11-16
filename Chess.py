@@ -71,91 +71,7 @@ thisdict = {
   "n": "bN",
   "k": "bK",
   "r": "bR",
-  "q": "bQ"
-}
-def update_board(board):
-    rank_strings = board.fen().split('/')
-    print(rank_strings)
-    eight_rank = rank_strings[7].split(' ')
-    rank_strings[7] = eight_rank[0]
-    rank_num = 8
-    for rank in rank_strings:
-        column_num = 1
-        for file in rank:
-            if rank_num % 2 == 1 and column_num % 2 == 1:
-                    this_color = 'L'
-            elif rank_num % 2 == 0 and column_num % 2 == 0:
-                this_color = 'L'
-            else:
-                this_color = 'W'
-            try :
-                count = int(file)
-                while count > 0 :
-                    window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + 'blank' + image_file_type))
-                    count -= 1
-                    column_num += 1
-                    if this_color == 'L':
-                        this_color = 'W'
-                    else :
-                        this_color = 'L'
-                continue
-            except ValueError:
-                
-                window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
-                column_num += 1
-        rank_num = rank_num - 1
-        if rank_num == 0:
-            break
-ai_diff = 'Not Picked'
-user_turn = True
-selected_square = ' '
-game = chess.Board()
-# Create the Window
-window = sg.Window('Chess', layout, element_justification='c')
-# Event Loop to process "events" and get the "values" of the inputs
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-        break
-    elif event == '-diff_input-':
-        chosen_difficulty = values['-DROPDOWN-']
-        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
-            ai_diff = chosen_difficulty
-            window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
-            update_board(game)
-        elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
-            sg.popup_notify('Game has started\n', 'Cannot choose a difficulty after the game has already started.',
-            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-            fade_in_duration=200)
-    elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn and event[int(0):int(4)] == 'tile':
-        window[event].update(button_color = 'RED')
-        selected_square = event
-    elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
-        sg.popup_notify('Game has not started\n', 'Choose a difficulty.',
-            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-            fade_in_duration=200)
-    elif not selected_square == ' ' and user_turn and event[int(0):int(4)] == 'tile':
-        try :
-            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
-            for move in game.legal_moves:
-                if uci_move == move:
-                    game.push(uci_move)
-                    update_board(game)
-        except ValueError:
-            print('Illegal Move')
-        if (selected_square[4:5] == 'L'):
-            button_color_thing = 'LIGHT GREEN'
-        else :
-            button_color_thing = "WHITE"
-        window[selected_square].update(button_color = button_color_thing)
-        selected_square = ' '
-
-
-window.close()
-
-
-
-
+  "q": "bQ" }
 #Initializes all the variables
 board = chess.Board()
 total_moves = []
@@ -233,7 +149,7 @@ def printmovelist():
 
 
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
-def evaluate():
+def evaluate(board):
     global total_moves_simulated
     total_moves_simulated += 1
     # Checks game over rules and returns integers accordingly
@@ -287,14 +203,14 @@ def evaluate():
     return eval
 
 # MiniMax function
-def minimax(depth):
+def minimax(depth, board):
     if depth == 0 :
-        return evaluate()
+        return evaluate(board)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = minimax(depth - 1)
+            evaluation = minimax(depth - 1, board)
             board.pop()
             max_evaluation = max(max_evaluation, evaluation)
         return max_evaluation
@@ -302,13 +218,13 @@ def minimax(depth):
         min_evaluation = 100000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = minimax(depth - 1)
+            evaluation = minimax(depth - 1, board)
             board.pop()
             min_evaluation = min(evaluation, min_evaluation)
         return min_evaluation
 
 #Get a move from the minimax alogrithim
-def getmove(depth):
+def getmove(depth, board):
     best_move = chess.Move.null()
     if board.turn :
         best_evaluation = -999999999
@@ -316,7 +232,7 @@ def getmove(depth):
         best_evaluation = 999999999
     for some_move in board.legal_moves:
         board.push(some_move)
-        evaluation = minimax(depth - 1)
+        evaluation = minimax(depth - 1, board)
         board.pop()
         if board.turn and evaluation > best_evaluation:
             best_evaluation = evaluation
@@ -327,14 +243,14 @@ def getmove(depth):
     return best_move
 
 #Applies minimax with an alpha beta pruning
-def alphabeta(depth, alpha, beta) :
+def alphabeta(depth, alpha, beta, board) :
     if depth == 0 :
-        return evaluate()
+        return evaluate(board)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = alphabeta(depth - 1, alpha, beta)
+            evaluation = alphabeta(depth - 1, alpha, beta, board)
             board.pop()
             max_evaluation = max(max_evaluation, evaluation)
             alpha = max(alpha, evaluation)
@@ -345,7 +261,7 @@ def alphabeta(depth, alpha, beta) :
         min_evaluation = 100000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = alphabeta(depth - 1, alpha, beta)
+            evaluation = alphabeta(depth - 1, alpha, beta, board)
             beta = min(evaluation, beta)
             board.pop()
             min_evaluation = min(evaluation, min_evaluation)
@@ -354,7 +270,7 @@ def alphabeta(depth, alpha, beta) :
         return min_evaluation
 
 #Get a move from the minimax alogrithim with alpha beta pruning
-def getmove_alphabeta(depth, alpha, beta):
+def getmove_alphabeta(depth, alpha, beta, board):
     best_move = chess.Move.null()
     if board.turn :
         best_evaluation = -999999999
@@ -362,7 +278,7 @@ def getmove_alphabeta(depth, alpha, beta):
         best_evaluation = 999999999
     for some_move in board.legal_moves:
         board.push(some_move)
-        evaluation = alphabeta(depth - 1, alpha, beta)
+        evaluation = alphabeta(depth - 1, alpha, beta, board)
         board.pop()
         if board.turn and evaluation > best_evaluation:
             best_evaluation = evaluation
@@ -371,163 +287,273 @@ def getmove_alphabeta(depth, alpha, beta):
             best_evaluation = evaluation
             best_move = some_move
     return best_move
-
-
-while True:
-    try :
-        menu_option = int(input("\nPick one of the three options.\n1. Play a game against an AI\n2. Play a game against an AI starting from a PGN file.\n"))
-        if (menu_option > 0 and menu_option < 3) :
-            break
-        else :
-            print("\nInvalid Value, Try Again")
-    except ValueError:
-        print("\nInvalid Value, Try Again")
-        menu_option = 0
-if (menu_option == 1 or menu_option == 2) :
-    if (menu_option == 2) :
-        need_new_board = False
-        while (not need_new_board) :
-            try : 
-                file_name = (input("\nWhat is the file name of the PGN? (Do not input the added file extension and make sure the file is in the PGN folder): "))
-                pgn = open("PGN/" + file_name + ".pgn")
-                parsed_game = chess.pgn.read_game(pgn)
-                for some_move in parsed_game.mainline_moves():
-                    total_moves.append(board.san(some_move))
-                    board.push(some_move)
-                need_new_board = True
-            except (FileNotFoundError, OSError):
-                print("\nInvalid PGN, try again")
-                need_new_board = False
-    while not pick_difficulty:
-        try:
-            ai_difficulty = int(input("Which difficulty would you like to play against?\n1. Easy\n2. Medium\n3. Hard\n"))
-            if ai_difficulty < 1 or ai_difficulty > 3 :
-                print("\nUnfortunately, that is not an option, please pick again.\n")
-                pick_difficulty = False
-            else :
-                pick_difficulty = True
-        except ValueError as e:
-            print("\nUnfortunately, that is not an option, please pick again.\n")
-            pick_difficulty = False
-        
-
-    # Picks color of user
-    while not pick_color:
-        try:
-            user_color = int(input("\nWhich color would you like to play?\n1. White\n2. Black\n"))
-            if (user_color != 1 and user_color != 2) :
-                print("\nUnfortunately, that is not an option, please pick again.")
-                pick_color = False
-            else :
-                pick_color = True
-        except ValueError:
-            print("\nUnfortunately, that is not an option, please pick again.")
-            pick_color = False
-
-    # Picks depth
-    if ai_difficulty == 2 or ai_difficulty == 3:
-        while True:
-            try:
-                input_depth = int(input("\nTo which depth would you like the computer to think to?\n"))
-                if (input_depth > 0) :
-                    break
-                else:
-                    print("\nUnfortunately, that is not an integer, please pick again.")
+def update_board(board):
+    rank_strings = board.fen().split('/')
+    eight_rank = rank_strings[7].split(' ')
+    rank_strings[7] = eight_rank[0]
+    rank_num = 8
+    for rank in rank_strings:
+        column_num = 1
+        for file in rank:
+            if rank_num % 2 == 1 and column_num % 2 == 1:
+                    this_color = 'L'
+            elif rank_num % 2 == 0 and column_num % 2 == 0:
+                this_color = 'L'
+            else:
+                this_color = 'W'
+            try :
+                count = int(file)
+                while count > 0 :
+                    window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + 'blank' + image_file_type))
+                    count -= 1
+                    column_num += 1
+                    if this_color == 'L':
+                        this_color = 'W'
+                    else :
+                        this_color = 'L'
+                continue
             except ValueError:
-                print("\nUnfortunately, that is not an integer, please pick again.")
-
-    if (board.turn) :
-        start_turn = "White"
-    else :
-        start_turn ="Black"
-    # Prints initial board
-    print("\n========================")
-    print("\n" + start_turn + " to move\n")
-    print(board)
-    print("\n========================\n")
-
-    # Game info, AI moves, and user input for moves are selected here until game is over
-    while not resign:
-        move = chess.Move.null()
-        if ((board.turn == chess.WHITE and user_color == 1) or (board.turn == chess.BLACK and user_color == 2)) :
-            while not move in board.legal_moves:
-                move = input("Please specify your move in SAN (Type resign to resign.): ")
-                try :
-                    if (move.lower() == "resign") :
-                        resign = True
+                
+                window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
+                column_num += 1
+        rank_num = rank_num - 1
+        if rank_num == 0:
+            break
+ai_diff = 'Not Picked'
+user_turn = True
+selected_square = ' '
+game = chess.Board()
+# Create the Window
+window = sg.Window('Chess', layout, element_justification='c')
+# Event Loop to process "events" and get the "values" of the inputs
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+        break
+    elif event == '-diff_input-':
+        chosen_difficulty = values['-DROPDOWN-']
+        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
+            ai_diff = chosen_difficulty
+            window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
+            update_board(game)
+        elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
+            sg.popup_notify('Game has started\n', 'Cannot choose a difficulty after the game has already started.',
+            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+            fade_in_duration=200)
+    elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile' and game.color_at(chess.parse_square(event[5:7].lower())) == user_turn:
+        window[event].update(button_color = 'RED')
+        selected_square = event
+    elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
+        sg.popup_notify('Game has not started\n', 'Choose a difficulty.',
+            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+            fade_in_duration=200)
+    elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
+        try :
+            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
+            for move in game.legal_moves:
+                if uci_move == move:
+                    game.push(uci_move)
+                    update_board(game)
+            if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                break     
+            if (ai_diff == 'Easy') :
+                random = randint(0, game.legal_moves.count() - 1)
+                count = 0
+                for legal_move in game.legal_moves :
+                    if random == count :
+                        game.push(legal_move)
+                        update_board(game)
                         break
-                    print()
-                except ValueError :
-                    print()
-                try : 
-                    move = board.parse_san(move)
-                except ValueError:
-                    move = chess.Move.null()
-                    print("Invalid Input\n")
-                if not move == chess.Move.null() and not move in board.legal_moves :
-                    print("Invalid Input\n")
-
-        # AI moves for easy mode
-        elif ai_difficulty == 1:
-            random = randint(0, board.legal_moves.count() - 1)
-            count = 0
-            for legal_move in board.legal_moves :
-                if random == count :
-                    move = legal_move
-                    break
-                else :
-                    count += 1
-
-        #AI moves for medium difficulty (minimax only) VERY SLOW
-        elif ai_difficulty == 2:
-            print("Computer thinking....\n")
-            total_moves_simulated = 0
-            move = getmove(input_depth)
-            print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
-        #AI moves for hard difficulty (minimax alpha beta pruning) and library for openings of grandmasters
-        elif ai_difficulty == 3:
-            print("Computer thinking....\n")
-            total_moves_simulated = 0
-            try:
-                move = chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(board).move
-            except :
-                move = getmove_alphabeta(input_depth, -1000000000, 1000000000)
-            print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
-
-        # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
-        if resign :
-            break
-        total_moves.append(board.san(move))
-        board.push(move)
-
-        # Checks if game is over
-        if (board.is_checkmate() or board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition() or board.is_seventyfive_moves()) :
-            break
-        if (board.turn == chess.BLACK):
-            color = "Black's"
+                    else :
+                        count += 1
+                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                    break 
+            elif(ai_diff == 'Medium') :
+                game.push(getmove(3, game))
+                update_board(game)
+                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                    break 
+            elif(ai_diff == 'Hard') :
+                game.push(getmove_alphabeta(3, -1000000000, 1000000000000, game))
+                update_board(game)
+                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                    break 
+        except ValueError:
+            print('Illegal Move')
+        if (selected_square[4:5] == 'L'):
+            button_color_thing = 'LIGHT GREEN'
         else :
-            color = "White's"
-        if ((board.turn == chess.BLACK and user_color == 2) or (board.turn == chess.WHITE and user_color == 1)):
-            ai_or_user = "(Your turn)"
-        else :
-            ai_or_user = "(Computer's turn)"
-        print(color + " turn to move " + ai_or_user + ".\n")
-        print(board)
-        print()
-        print(printmovelist())
+            button_color_thing = "WHITE"
+        window[selected_square].update(button_color = button_color_thing)
+        selected_square = ' '
+
+if game.outcome().winner == user_turn:
+    sg.popup('Checkmate.', 'You won!')
+else :
+    sg.popup('Checkmate', 'You lost')
+window.close()
+
+
+
+
+
+
+
+# while True:
+#     try :
+#         menu_option = int(input("\nPick one of the three options.\n1. Play a game against an AI\n2. Play a game against an AI starting from a PGN file.\n"))
+#         if (menu_option > 0 and menu_option < 3) :
+#             break
+#         else :
+#             print("\nInvalid Value, Try Again")
+#     except ValueError:
+#         print("\nInvalid Value, Try Again")
+#         menu_option = 0
+# if (menu_option == 1 or menu_option == 2) :
+#     if (menu_option == 2) :
+#         need_new_board = False
+#         while (not need_new_board) :
+#             try : 
+#                 file_name = (input("\nWhat is the file name of the PGN? (Do not input the added file extension and make sure the file is in the PGN folder): "))
+#                 pgn = open("PGN/" + file_name + ".pgn")
+#                 parsed_game = chess.pgn.read_game(pgn)
+#                 for some_move in parsed_game.mainline_moves():
+#                     total_moves.append(board.san(some_move))
+#                     board.push(some_move)
+#                 need_new_board = True
+#             except (FileNotFoundError, OSError):
+#                 print("\nInvalid PGN, try again")
+#                 need_new_board = False
+#     while not pick_difficulty:
+#         try:
+#             ai_difficulty = int(input("Which difficulty would you like to play against?\n1. Easy\n2. Medium\n3. Hard\n"))
+#             if ai_difficulty < 1 or ai_difficulty > 3 :
+#                 print("\nUnfortunately, that is not an option, please pick again.\n")
+#                 pick_difficulty = False
+#             else :
+#                 pick_difficulty = True
+#         except ValueError as e:
+#             print("\nUnfortunately, that is not an option, please pick again.\n")
+#             pick_difficulty = False
         
 
-    # Handles the outcome of the game description
-    if resign :
-        winner = "The computer won..."
-    elif (board.outcome().winner and user_color == 1)or (not board.outcome().winner and user_color == 2):
-        winner = "You won!\n"
-        print(board)
-        print()
-    else :
-        winner = "The computer won...\n"
-        print(board)
-        print()
-    print(winner)
-    if not resign :
-        print(board.outcome().result())
+#     # Picks color of user
+#     while not pick_color:
+#         try:
+#             user_color = int(input("\nWhich color would you like to play?\n1. White\n2. Black\n"))
+#             if (user_color != 1 and user_color != 2) :
+#                 print("\nUnfortunately, that is not an option, please pick again.")
+#                 pick_color = False
+#             else :
+#                 pick_color = True
+#         except ValueError:
+#             print("\nUnfortunately, that is not an option, please pick again.")
+#             pick_color = False
+
+#     # Picks depth
+#     if ai_difficulty == 2 or ai_difficulty == 3:
+#         while True:
+#             try:
+#                 input_depth = int(input("\nTo which depth would you like the computer to think to?\n"))
+#                 if (input_depth > 0) :
+#                     break
+#                 else:
+#                     print("\nUnfortunately, that is not an integer, please pick again.")
+#             except ValueError:
+#                 print("\nUnfortunately, that is not an integer, please pick again.")
+
+#     if (board.turn) :
+#         start_turn = "White"
+#     else :
+#         start_turn ="Black"
+#     # Prints initial board
+#     print("\n========================")
+#     print("\n" + start_turn + " to move\n")
+#     print(board)
+#     print("\n========================\n")
+
+#     # Game info, AI moves, and user input for moves are selected here until game is over
+#     while not resign:
+#         move = chess.Move.null()
+#         if ((board.turn == chess.WHITE and user_color == 1) or (board.turn == chess.BLACK and user_color == 2)) :
+#             while not move in board.legal_moves:
+#                 move = input("Please specify your move in SAN (Type resign to resign.): ")
+#                 try :
+#                     if (move.lower() == "resign") :
+#                         resign = True
+#                         break
+#                     print()
+#                 except ValueError :
+#                     print()
+#                 try : 
+#                     move = board.parse_san(move)
+#                 except ValueError:
+#                     move = chess.Move.null()
+#                     print("Invalid Input\n")
+#                 if not move == chess.Move.null() and not move in board.legal_moves :
+#                     print("Invalid Input\n")
+
+#         # AI moves for easy mode
+#         elif ai_difficulty == 1:
+#             random = randint(0, board.legal_moves.count() - 1)
+#             count = 0
+#             for legal_move in board.legal_moves :
+#                 if random == count :
+#                     move = legal_move
+#                     break
+#                 else :
+#                     count += 1
+
+#         #AI moves for medium difficulty (minimax only) VERY SLOW
+#         elif ai_difficulty == 2:
+#             print("Computer thinking....\n")
+#             total_moves_simulated = 0
+#             move = getmove(input_depth)
+#             print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
+#         #AI moves for hard difficulty (minimax alpha beta pruning) and library for openings of grandmasters
+#         elif ai_difficulty == 3:
+#             print("Computer thinking....\n")
+#             total_moves_simulated = 0
+#             try:
+#                 move = chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(board).move
+#             except :
+#                 move = getmove_alphabeta(input_depth, -1000000000, 1000000000)
+#             print("Computer simulated " + str(total_moves_simulated) + " moves. Computer played " + board.san(move) + "\n")
+
+#         # Pushes whatever move and continues the game. Also prints the board along with turn descriptions
+#         if resign :
+#             break
+#         total_moves.append(board.san(move))
+#         board.push(move)
+
+#         # Checks if game is over
+#         if (board.is_checkmate() or board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition() or board.is_seventyfive_moves()) :
+#             break
+#         if (board.turn == chess.BLACK):
+#             color = "Black's"
+#         else :
+#             color = "White's"
+#         if ((board.turn == chess.BLACK and user_color == 2) or (board.turn == chess.WHITE and user_color == 1)):
+#             ai_or_user = "(Your turn)"
+#         else :
+#             ai_or_user = "(Computer's turn)"
+#         print(color + " turn to move " + ai_or_user + ".\n")
+#         print(board)
+#         print()
+#         print(printmovelist())
+        
+
+#     # Handles the outcome of the game description
+#     if resign :
+#         winner = "The computer won..."
+#     elif (board.outcome().winner and user_color == 1)or (not board.outcome().winner and user_color == 2):
+#         winner = "You won!\n"
+#         print(board)
+#         print()
+#     else :
+#         winner = "The computer won...\n"
+#         print(board)
+#         print()
+#     print(winner)
+#     if not resign :
+#         print(board.outcome().result())
