@@ -1,4 +1,5 @@
 
+from tkinter import image_types
 from typing import List
 import chess
 import chess.polyglot
@@ -8,6 +9,13 @@ import PySimpleGUI as sg
 
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
+image_file_path = 'IMAGES/'
+image_name = 'blank'
+image_file_type = '.png'
+difficulties = ['Easy', 'Medium', 'Hard']
+menu = [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
+enable_events=True, default_value='Easy', key = '-DROPDOWN-'), sg.Button(button_text='ENTER', key='-diff_input-')]
+rank_letters = []
 rank_one = []
 rank_two = []
 rank_three = []
@@ -16,11 +24,17 @@ rank_five = []
 rank_six = []
 rank_seven = []
 rank_eight = []
+letter_count = 0
+while len(rank_letters) < 9:
+    if letter_count == 0:
+        rank_letters.append(sg.Text(text=' ', size=(6,3)))
+    rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,4), font = 8))
+    letter_count += 1
 board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
 rank_count = 1
 for rank in board_gui:
     column = 1
-    while len(rank) < 8:
+    while len(rank) < 9:
         this_color = 'RED'
         if rank_count % 2 == 1 and column % 2 == 1:
             this_color = 'LIGHT GREEN'
@@ -28,11 +42,13 @@ for rank in board_gui:
             this_color = 'LIGHT GREEN'
         else:
             this_color = 'WHITE'
-        rank.append(sg.Button(button_text=(chr(column+64) + str(rank_count)), size=(6,3), 
-        button_color=this_color, key = chr(column+64) + str(rank_count), border_width=20))
+        if column == 1:
+            rank.append(sg.Text(text = rank_count))
+        rank.append(sg.Button(size=(6,3), 
+        button_color=this_color, key = chr(column+64) + str(rank_count), border_width=0,
+        image_filename=image_file_path + image_name + image_file_type))
         column += 1
-    rank_count += 1
-    
+    rank_count += 1    
 layout =    [[rank_eight],
             [rank_seven],
             [rank_six],
@@ -40,19 +56,78 @@ layout =    [[rank_eight],
             [rank_four],
             [rank_three],
             [rank_two],
-            [rank_one]]
-
+            [rank_one],
+            [rank_letters],
+            [menu]]
+thisdict = {
+  "B": "wB",
+  "K": "wK",
+  "N": "wN",
+  "Q": "wQ",
+  "R": "wR",
+  "P": "wP",
+  "p": "bp",
+  "b": "bB",
+  "n": "bN",
+  "k": "bK",
+  "r": "bR",
+  "q": "bQ"
+}
+def update_board(board):
+    rank_strings = board.fen().split('/')
+    eight_rank = rank_strings[7].split(' ')
+    rank_strings[7] = eight_rank[0]
+    print(rank_strings)
+    rank_num = 8
+    for rank in rank_strings:
+        print(rank)
+        count = 0
+        column_num = 0
+        for file in rank:
+            print(file)
+            if not count == 0:
+                count -= 1
+                column_num += 1
+                continue
+            try :
+                count = int(file)
+                count -= 1
+                column_num += 1
+                continue
+            except ValueError:
+                window[(chr(column_num + 65) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
+                column_num += 1
+        rank_num = rank_num - 1
+        print(str(rank_num))
+        if rank_num == 0:
+            break
+ai_diff = 'Not Picked'
 # Create the Window
-window = sg.Window('Chess', layout)
+window = sg.Window('Chess', layout, element_justification='c')
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
+    elif event == '-diff_input-':
+        chosen_difficulty = values['-DROPDOWN-']
+        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
+            ai_diff = chosen_difficulty
+            window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
+            temp_board = chess.Board()
+            update_board(temp_board)
+        elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
+            sg.popup_notify('Game has started\n', 'Cannot choose a difficulty after the game has already started.',
+            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+            fade_in_duration=200)
+
 
 window.close()
 
-# Initializes all the variables
+
+
+
+#Initializes all the variables
 board = chess.Board()
 total_moves = []
 pick_color = False
@@ -269,7 +344,6 @@ def getmove_alphabeta(depth, alpha, beta):
     return best_move
 
 
-print("Welcome to chess!")
 while True:
     try :
         menu_option = int(input("\nPick one of the three options.\n1. Play a game against an AI\n2. Play a game against an AI starting from a PGN file.\n"))
