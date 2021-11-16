@@ -1,7 +1,56 @@
+
+from typing import List
 import chess
 import chess.polyglot
 import chess.pgn
 from random import randint
+import PySimpleGUI as sg
+
+sg.theme('DarkAmber')   # Add a touch of color
+# All the stuff inside your window.
+rank_one = []
+rank_two = []
+rank_three = []
+rank_four = []
+rank_five = []
+rank_six = []
+rank_seven = []
+rank_eight = []
+board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
+rank_count = 1
+for rank in board_gui:
+    column = 1
+    while len(rank) < 8:
+        this_color = 'RED'
+        if rank_count % 2 == 1 and column % 2 == 1:
+            this_color = 'LIGHT GREEN'
+        elif rank_count % 2 == 0 and column % 2 == 0:
+            this_color = 'LIGHT GREEN'
+        else:
+            this_color = 'WHITE'
+        rank.append(sg.Button(button_text=(chr(column+64) + str(rank_count)), size=(6,3), 
+        button_color=this_color, key = chr(column+64) + str(rank_count), border_width=20))
+        column += 1
+    rank_count += 1
+    
+layout =    [[rank_eight],
+            [rank_seven],
+            [rank_six],
+            [rank_five],
+            [rank_four],
+            [rank_three],
+            [rank_two],
+            [rank_one]]
+
+# Create the Window
+window = sg.Window('Chess', layout)
+# Event Loop to process "events" and get the "values" of the inputs
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+        break
+
+window.close()
 
 # Initializes all the variables
 board = chess.Board()
