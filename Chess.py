@@ -57,7 +57,8 @@ for rank in board_gui:
         button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
         image_filename=image_file_path + image_name + image_file_type))
         column += 1
-    rank_count += 1    
+    rank_count += 1  
+#Creates window layout  
 layout =    [[rank_eight],
             [rank_seven],
             [rank_six],
