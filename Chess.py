@@ -58,7 +58,7 @@ for rank in board_gui:
         image_filename=image_file_path + image_name + image_file_type))
         column += 1
     rank_count += 1  
-#Creates window layout  
+#Creates window layout salkdjf  
 layout =    [[rank_eight],
             [rank_seven],
             [rank_six],
