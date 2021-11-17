@@ -27,8 +27,8 @@ rank_eight = []
 letter_count = 0
 while len(rank_letters) < 9:
     if letter_count == 0:
-        rank_letters.append(sg.Text(text=' ', size=(6,3)))
-    rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,4), font = 8))
+        rank_letters.append(sg.Text(text=' ', size=(6,1)))
+    rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,1), font = 8))
     letter_count += 1
 board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
 rank_count = 1
@@ -44,7 +44,7 @@ for rank in board_gui:
             this_color = 'WHITE'
         if column == 1:
             rank.append(sg.Text(text = rank_count))
-        rank.append(sg.Button(size=(6,3), 
+        rank.append(sg.Button(size=(3,1), 
         button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
         image_filename=image_file_path + image_name + image_file_type))
         column += 1
@@ -324,7 +324,7 @@ user_turn = True
 selected_square = ' '
 game = chess.Board()
 # Create the Window
-window = sg.Window('Chess', layout, element_justification='c')
+window = sg.Window('Chess', layout, element_justification='c', size=(800,800))
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
