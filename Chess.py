@@ -13,8 +13,16 @@ image_file_path = 'IMAGES/'
 image_name = 'blank'
 image_file_type = '.png'
 difficulties = ['Easy', 'Medium', 'Hard']
-menu = [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
-enable_events=True, default_value='Easy', key = '-DROPDOWN-'), sg.Button(button_text='ENTER', key='-diff_input-')]
+total_moves_simulated = 0
+depth_options = [1, 2, 3, 4, 5, 6]
+menu = sg.Column(
+    [[sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
+    default_value='White', key = '-COLOR-')],
+    [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
+enable_events=True, default_value='Easy', key = '-DROPDOWN-')],
+[ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value='2', key='-DEPTH-')],
+[sg.Button(button_text='ENTER', key='-diff_input-')]]
+)
 rank_letters = []
 rank_one = []
 rank_two = []
@@ -34,6 +42,7 @@ board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_se
 rank_count = 1
 for rank in board_gui:
     column = 1
+    #TODO change this
     while len(rank) < 9:
         this_color = 'RED'
         if rank_count % 2 == 1 and column % 2 == 1:
@@ -72,13 +81,13 @@ thisdict = {
   "k": "bK",
   "r": "bR",
   "q": "bQ" }
-#Initializes all the variables
-board = chess.Board()
-total_moves = []
-pick_color = False
-resign = False
-pick_difficulty = False
-total_moves_simulated = int(0)
+# #Initializes all the variables
+# board = chess.Board()
+# total_moves = []
+# pick_color = False
+# resign = False
+# pick_difficulty = False
+# total_moves_simulated = int(0)
 pawntable = [
     0, 0, 0, 0, 0, 0, 0, 0,
     5, 10, 10, -20, -20, 10, 10, 5,
@@ -134,18 +143,19 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30,
     -30, -40, -40, -50, -50, -40, -40, -30]
 
-# Function to print move list
-def printmovelist():
-    count = int(1)
-    move_list = ""
-    for m in total_moves :
-        if count % 2 == 1:
-            move_list += str(int(count / 2) + 1) + ". "
-        move_list += m + " "
-        if count % 20 == 0 :
-            move_list += "\n"
-        count += 1
-    return move_list + "\n\n========================\n"
+user_turn = True
+# # Function to print move list
+# def printmovelist():
+#     count = int(1)
+#     move_list = ""
+#     for m in total_moves :
+#         if count % 2 == 1:
+#             move_list += str(int(count / 2) + 1) + ". "
+#         move_list += m + " "
+#         if count % 20 == 0 :
+#             move_list += "\n"
+#         count += 1
+#     return move_list + "\n\n========================\n"
 
 
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
@@ -288,6 +298,7 @@ def getmove_alphabeta(depth, alpha, beta, board):
             best_move = some_move
     return best_move
 def update_board(board):
+    global user_turn
     rank_strings = board.fen().split('/')
     eight_rank = rank_strings[7].split(' ')
     rank_strings[7] = eight_rank[0]
@@ -295,9 +306,15 @@ def update_board(board):
     for rank in rank_strings:
         column_num = 1
         for file in rank:
-            if rank_num % 2 == 1 and column_num % 2 == 1:
+            if user_turn:
+                thing = 1
+                other_thing = 0
+            elif not user_turn:
+                thing = 0
+                other_thing = 1
+            if rank_num % 2 == thing and column_num % 2 == 1:
                     this_color = 'L'
-            elif rank_num % 2 == 0 and column_num % 2 == 0:
+            elif rank_num % 2 == other_thing and column_num % 2 == 0:
                 this_color = 'L'
             else:
                 this_color = 'W'
@@ -319,8 +336,34 @@ def update_board(board):
         rank_num = rank_num - 1
         if rank_num == 0:
             break
+
+def ai_play(game, ai_diff):
+    if (ai_diff == 'Easy') :
+        random = randint(0, game.legal_moves.count() - 1)
+        count = 0
+        for legal_move in game.legal_moves :
+            if random == count :
+                game.push(legal_move)
+                return game
+            else :
+                count += 1
+        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+            return 
+    elif(ai_diff == 'Medium') :
+        game.push(getmove(depth, game))
+        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+            return 
+    elif(ai_diff == 'Hard') :
+        try:
+            move = (chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(game).move)
+            game.push(move)
+        except Exception:
+            game.push(getmove_alphabeta(depth, -1000000000, 1000000000, game))
+        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+            return 
+    return game
 ai_diff = 'Not Picked'
-user_turn = True
+depth = 1
 selected_square = ' '
 game = chess.Board()
 # Create the Window
@@ -332,12 +375,36 @@ while True:
         break
     elif event == '-diff_input-':
         chosen_difficulty = values['-DROPDOWN-']
+        chosen_depth = values['-DEPTH-']
         if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
+            temp_value = values['-COLOR-']
+            if temp_value.lower() == 'white':
+                user_turn = True
+            elif temp_value.lower() == 'black':
+                user_turn = False
+                game = game.mirror()
+                game = ai_play(game, ai_diff)
+                update_board(game)
+            else:
+                sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
+                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                fade_in_duration=200)
+                continue
+            try :
+                depth = int(chosen_depth)
+                if depth < 1 or depth > 6:
+                    continue
+            except ValueError:
+                sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
+                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                fade_in_duration=200)
+                continue
             ai_diff = chosen_difficulty
             window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
+            window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
             update_board(game)
         elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
-            sg.popup_notify('Game has started\n', 'Cannot choose a difficulty after the game has already started.',
+            sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
             icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
             fade_in_duration=200)
     elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile' and game.color_at(chess.parse_square(event[5:7].lower())) == user_turn:
@@ -356,28 +423,13 @@ while True:
                     update_board(game)
             if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
                 break     
-            if (ai_diff == 'Easy') :
-                random = randint(0, game.legal_moves.count() - 1)
-                count = 0
-                for legal_move in game.legal_moves :
-                    if random == count :
-                        game.push(legal_move)
-                        update_board(game)
-                        break
-                    else :
-                        count += 1
-                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-                    break 
-            elif(ai_diff == 'Medium') :
-                game.push(getmove(3, game))
+            #Computer Moves
+            try:
+                game = ai_play(game, ai_diff)
                 update_board(game)
-                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-                    break 
-            elif(ai_diff == 'Hard') :
-                game.push(getmove_alphabeta(3, -1000000000, 1000000000000, game))
-                update_board(game)
-                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-                    break 
+            except ValueError:
+                print('Value Error')
+                break
         except ValueError:
             print('Illegal Move')
         if (selected_square[4:5] == 'L'):
