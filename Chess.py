@@ -12,6 +12,7 @@ sg.theme('DarkAmber')   # Add a touch of color
 image_file_path = 'IMAGES/'
 image_name = 'blank'
 image_file_type = '.png'
+move_list = []
 difficulties = ['Easy', 'Medium', 'Hard']
 total_moves_simulated = 0
 depth_options = [1, 2, 3, 4, 5, 6]
@@ -83,6 +84,22 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30,
     -30, -40, -40, -50, -50, -40, -40, -30]
 
+
+# Function to print move list
+def printmovelist():
+    global move_list
+    if move_list == [] :
+        return 'No moves played'
+    count = int(1)
+    move_list_string = ""
+    for m in move_list :
+        if count % 2 == 1:
+            move_list_string += str(int(count / 2) + 1) + ". "
+        move_list_string += m + " "
+        if count % 20 == 0 :
+            move_list_string += "\n"
+        count += 1
+    return move_list_string
 user_turn = True
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
 def evaluate(board):
@@ -258,29 +275,31 @@ def update_board(board):
             break
 
 def ai_play(game, ai_diff):
+    global total_moves_simulated
+    total_moves_simulated = 0
     if (ai_diff == 'Easy') :
         random = randint(0, game.legal_moves.count() - 1)
         count = 0
         for legal_move in game.legal_moves :
             if random == count :
-                game.push(legal_move)
-                return game
+                move = legal_move
+                break
             else :
                 count += 1
-        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-            return 
     elif(ai_diff == 'Medium') :
-        game.push(getmove(depth, game))
-        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-            return 
+        move = getmove(depth, game)
     elif(ai_diff == 'Hard') :
         try:
             move = (chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(game).move)
-            game.push(move)
         except Exception:
-            game.push(getmove_alphabeta(depth, -1000000000, 1000000000, game))
-        if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+            move = (getmove_alphabeta(depth, -1000000000, 1000000000, game))
+            
+    move_list.append(game.san(move))
+    game.push(move)
+    if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
             return 
+    #Update total moves
+    window['-TOTAL_MOVES-'].update('Total moves simulated: ' + str(total_moves_simulated))
     return game
 def create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, default_diff, default_color, default_depth):
     menu = sg.Column(
@@ -289,7 +308,9 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
         [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
     enable_events=True, default_value=default_diff, key = '-DROPDOWN-')],
     [ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value=default_depth, key='-DEPTH-')],
-    [sg.Button(button_text='PLAY A GAME', key='-diff_input-')]]
+    [sg.Text(text = 'Total moves simulated by computer: N/A', font = 12, key = '-TOTAL_MOVES-')],
+    [sg.Button(button_text = 'See Move list', key = '-MOVE_LIST-'), sg.Button(button_text='Play a game', key='-diff_input-')],
+    ]
     )
     rank_letters = []
     rank_one = []
@@ -423,13 +444,18 @@ while True:
             uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
             for move in game.legal_moves:
                 if uci_move == move:
+                    move_list.append(game.san(uci_move))
                     game.push(uci_move)
+                    #Update total moves
+                    window['-TOTAL_MOVES-'].update('Total moves simulated: ' + str(total_moves_simulated))
                     update_board(game)
             if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
                 break     
             #Computer Moves
             try:
+                #Play computer move
                 game = ai_play(game, ai_diff)
+                
                 update_board(game)
             except ValueError:
                 print('Value Error')
@@ -442,6 +468,21 @@ while True:
             button_color_thing = "WHITE"
         window[selected_square].update(button_color = button_color_thing)
         selected_square = ' '
+    elif event == '-MOVE_LIST-'  :
+        if (ai_diff == 'Not Picked') :
+            continue
+        new_layout = [
+            [sg.Text(text=printmovelist(), font = 12, key ='-MOVES-')],
+            [sg.Button(button_text = 'Cancel', key = '-CANCEL-')]
+        ]
+        popup = sg.Window('Move List', new_layout)
+        while(True) :
+            event_popup, values = popup.read()
+            if event_popup == sg.WIN_CLOSED or event_popup == '-CANCEL-' or event_popup == 'Cancel':
+                break
+        popup.close()
+
+
 
 #Find the winners of the game
 if game.outcome().winner == user_turn:
