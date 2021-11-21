@@ -282,13 +282,13 @@ def ai_play(game, ai_diff):
         if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
             return 
     return game
-def create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn):
+def create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, default_diff, default_color, default_depth):
     menu = sg.Column(
         [[sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
-        default_value='White', key = '-COLOR-')],
+        default_value=default_color, key = '-COLOR-')],
         [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
-    enable_events=True, default_value='Easy', key = '-DROPDOWN-')],
-    [ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value='2', key='-DEPTH-')],
+    enable_events=True, default_value=default_diff, key = '-DROPDOWN-')],
+    [ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value=default_depth, key='-DEPTH-')],
     [sg.Button(button_text='PLAY A GAME', key='-diff_input-')]]
     )
     rank_letters = []
@@ -347,14 +347,14 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
                         [rank_seven],
                         [rank_eight],
                         [rank_letters],
-                        [menu]]
+                        [menu]] 
     return sg.Window('Chess', layout, element_justification='c', size=(800,800))
 
 ai_diff = 'Not Picked'
 depth = 1
 selected_square = ' '
 game = chess.Board()
-window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, True)
+window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, True, 'Easy', 'White', '2')
 # Create the Window
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -365,22 +365,8 @@ while True:
     elif event == '-diff_input-':
         chosen_difficulty = values['-DROPDOWN-']
         chosen_depth = values['-DEPTH-']
+        #Start game!
         if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
-            temp_value = values['-COLOR-']
-            if temp_value.lower() == 'white':
-                user_turn = True
-            elif temp_value.lower() == 'black':
-                user_turn = False
-                window.close()
-                window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, False)
-                window.read()
-                game = ai_play(game, ai_diff)
-                update_board(game)
-            else:
-                sg.popup_notify('Please choose white or black to play!\n',
-                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-                fade_in_duration=200)
-                continue
             try :
                 depth = int(chosen_depth)
                 if depth < 1 or depth > 6:
@@ -393,6 +379,22 @@ while True:
                 icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
                 fade_in_duration=200)
                 continue
+            temp_value = values['-COLOR-']
+            if temp_value.lower() == 'white':
+                user_turn = True
+            elif temp_value.lower() == 'black':
+                user_turn = False
+                window.close()
+                window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, chosen_difficulty, 'Black', depth)
+                window.finalize()
+                game = ai_play(game, chosen_difficulty)
+                update_board(game)
+            else:
+                sg.popup_notify('Please choose white or black to play!\n',
+                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                fade_in_duration=200)
+                continue
+            
             ai_diff = chosen_difficulty
             window['-COLOR_TEXT-'].update('You are ' + temp_value.upper())
             window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
@@ -409,9 +411,9 @@ while True:
         window[event].update(button_color = 'RED')
         selected_square = event
     elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
-        sg.popup_notify('Game has not started\n', 'Choose a difficulty.',
+        sg.popup_notify('Game has not started\n', 'Choose the settings.',
             icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-            fade_in_duration=200)
+            fade_in_duration=300)
     elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
         try :
             uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
