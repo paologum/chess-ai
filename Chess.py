@@ -7,15 +7,8 @@ import chess.pgn
 from random import randint
 import PySimpleGUI as sg
 
+#added a COMMENT
 sg.theme('DarkAmber')   # Add a touch of color
-# All the stuff inside your window.
-# #Initializes all the variables
-# board = chess.Board()
-# total_moves = []
-# pick_color = False
-# resign = False
-# pick_difficulty = False
-# total_moves_simulated = int(0)
 image_file_path = 'IMAGES/'
 image_name = 'blank'
 image_file_type = '.png'
