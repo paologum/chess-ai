@@ -243,6 +243,7 @@ def getmove_alphabeta(depth, alpha, beta, board):
 def update_board(board):
     global user_turn
     rank_strings = board.fen().split('/')
+    print(rank_strings)
     eight_rank = rank_strings[7].split(' ')
     rank_strings[7] = eight_rank[0]
     rank_num = 8
@@ -267,7 +268,6 @@ def update_board(board):
                         this_color = 'L'
                 continue
             except ValueError:
-                
                 window['tile' + this_color + (chr(column_num + 64) + str(rank_num))].update(image_filename=(image_file_path + thisdict.get(file) + image_file_type))
                 column_num += 1
         rank_num = rank_num - 1
@@ -454,7 +454,42 @@ while True:
     #if you already selected a square, see if move is legal or not then proceed accordingly
     elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
         try :
-            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
+            promotion = ''
+            #TODO finish figuring out promotion
+            print(game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol())
+            if (event[6:7] == 8 and user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'P') :
+                promotion_window = sg.Window('Promote to which piece?', size = (100, 400), layout=[
+                    [sg.Button(size = (2, 4),image=(image_file_path + thisdict.get('Q') + image_file_type), key = '-WQUEEN_PROMOTION-')], 
+                [sg.Button(size = (2, 4),image=(image_file_path + thisdict.get('B') + image_file_type), key = '-WBISHOP_PROMOTION-')], 
+                [sg.Button(size = (2, 4), image=(image_file_path + thisdict.get('N') + image_file_type), key = '-WKNIGHT_PROMOTION-')],
+                [sg.Button(size = (2, 4),image=(image_file_path + thisdict.get('R') + image_file_type), key = ['-WROOK_PROMOTION-'])]])
+                event, values = promotion.read()
+                if event == '-WQUEEN_PROMOTION-':
+                    promotion = 'Q'
+                elif event == '-WBISHOP_PROMOTION-':
+                    promotion ='B'
+                elif event == '-BKNIGHT_PROMOTION-':
+                    promotion = 'N'
+                elif event == '-BROOK_PROMOTION-':
+                    promotion = 'R'
+                promotion_window.close()
+            elif (event[6:7] == 1 and not user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'p')  :
+                promotion_window = sg.Window('Promote to which piece?', size = (100, 400), layout=[
+                    [sg.Button(image=(image_file_path + thisdict.get('q') + image_file_type), key = '-BQUEEN_PROMOTION-')], 
+                [sg.Button(image=(image_file_path + thisdict.get('b') + image_file_type), key = '-BBISHOP_PROMOTION-')], 
+                [sg.Button(image=(image_file_path + thisdict.get('n') + image_file_type), key = '-BKNIGHT_PROMOTION-')],
+                [sg.Button(image=(image_file_path + thisdict.get('r') + image_file_type), key = ['-BROOK_PROMOTION-'])]])
+                event, values = promotion.read()
+                if event == '-BQUEEN_PROMOTION-':
+                    promotion = 'q'
+                elif event == '-BBISHOP_PROMOTION-':
+                    promotion = 'b'
+                elif event == '-BKNIGHT_PROMOTION-':
+                    promotion = 'n'
+                elif event == '-BROOK_PROMOTION-':
+                    promotion = 'r'
+                promotion_window.close()
+            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower() + promotion)
             for move in game.legal_moves:
                 if uci_move == move:
                     move_list.append(game.san(uci_move))
