@@ -403,17 +403,21 @@ while True:
             else :
                 window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
             update_board(game)
+        #If already started, print error when changing settings!
         elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
             sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
             icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
             fade_in_duration=200)
+    #When selecting a square, highlight it red!
     elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile' and game.color_at(chess.parse_square(event[5:7].lower())) == user_turn:
         window[event].update(button_color = 'RED')
         selected_square = event
+    #When selecting a square before game started, print error
     elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
         sg.popup_notify('Game has not started\n', 'Choose the settings.',
             icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
             fade_in_duration=300)
+    #if you already selected a square, see if move is legal or not then proceed accordingly
     elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
         try :
             uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower())
@@ -439,6 +443,7 @@ while True:
         window[selected_square].update(button_color = button_color_thing)
         selected_square = ' '
 
+#Find the winners of the game
 if game.outcome().winner == user_turn:
     sg.popup('Checkmate.', 'You won!')
 else :
