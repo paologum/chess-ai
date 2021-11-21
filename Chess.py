@@ -277,6 +277,7 @@ def update_board(board):
 def ai_play(game, ai_diff):
     global total_moves_simulated
     total_moves_simulated = 0
+    #get a rando move
     if (ai_diff == 'Easy') :
         random = randint(0, game.legal_moves.count() - 1)
         count = 0
@@ -325,12 +326,18 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
     while len(rank_letters) < 9:
         if letter_count == 0:
             rank_letters.append(sg.Text(text=' ', size=(6,1)))
-        rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,1), font = 8))
+        if user_turn:
+            rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,1), font = 8))
+        else:
+            rank_letters.append(sg.Text(text=chr(72 - letter_count), size=(6,1), font = 8))
         letter_count += 1
     board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
     rank_count = 1
     for rank in board_gui:
-        column = 1
+        if user_turn:
+            column = 1
+        else :
+            column = 8
         while len(rank) < 9:
             this_color = 'RED'
             if rank_count % 2 == 1 and column % 2 == 1:
@@ -339,13 +346,18 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
                 this_color = 'LIGHT GREEN'
             else:
                 this_color = 'WHITE'
-            if column == 1:
+            if column == 1 and user_turn:
+                rank.append(sg.Text(text = rank_count))
+            if column == 8 and not user_turn:
                 rank.append(sg.Text(text = rank_count))
             rank.append(sg.Button(size=(3,1), 
             button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
             image_filename=image_file_path + image_name + image_file_type))
-            column += 1
-        rank_count += 1    
+            if user_turn:
+                column += 1
+            else :
+                column -= 1
+        rank_count += 1  
         if (user_turn) :
 
             layout =    [[rank_eight],
