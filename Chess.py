@@ -91,20 +91,6 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30]
 
 user_turn = True
-# # Function to print move list
-# def printmovelist():
-#     count = int(1)
-#     move_list = ""
-#     for m in total_moves :
-#         if count % 2 == 1:
-#             move_list += str(int(count / 2) + 1) + ". "
-#         move_list += m + " "
-#         if count % 20 == 0 :
-#             move_list += "\n"
-#         count += 1
-#     return move_list + "\n\n========================\n"
-
-
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
 def evaluate(board):
     global total_moves_simulated
