@@ -309,7 +309,7 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
     enable_events=True, default_value=default_diff, key = '-DROPDOWN-')],
     [ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value=default_depth, key='-DEPTH-')],
     [sg.Text(text = 'Total moves simulated by computer: N/A', font = 12, key = '-TOTAL_MOVES-')],
-    [sg.Button(button_text = 'See Move list', key = '-MOVE_LIST-'), sg.Button(button_text='Play a game', key='-diff_input-')],
+    [sg.Button(button_text = 'See Move list', key = '-MOVE_LIST-'), sg.Button(button_text='Play a game', key='-diff_input-'), sg.Button(button_text='Resign', key='-resign-')],
     ]
     )
     rank_letters = []
@@ -373,6 +373,7 @@ def create_window(image_file_path, image_name, image_file_type, difficulties, de
 
 ai_diff = 'Not Picked'
 depth = 1
+resign = False
 selected_square = ' '
 game = chess.Board()
 window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, True, 'Easy', 'White', '2')
@@ -481,11 +482,16 @@ while True:
             if event_popup == sg.WIN_CLOSED or event_popup == '-CANCEL-' or event_popup == 'Cancel':
                 break
         popup.close()
+    elif event == '-resign-' and not ai_diff == 'Not Picked':
+        resign = True
+        break
 
 
 
 #Find the winners of the game
-if game.outcome().winner == user_turn:
+if resign:
+    sg.popup('You resigned', 'Computer won...')
+elif game.outcome().winner == user_turn:
     sg.popup('Checkmate.', 'You won!')
 else :
     sg.popup('Checkmate', 'You lost')
