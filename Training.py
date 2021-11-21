@@ -64,7 +64,6 @@ def start(board):
 
 for i in range(10000):
      board = [[" " for x in range(8)] for y in range(8)]
-     numpy
 
 
 np.savetxt('training_boards.csv', start(board), delimiter=",")

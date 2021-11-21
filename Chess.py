@@ -9,79 +9,6 @@ import PySimpleGUI as sg
 
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
-image_file_path = 'IMAGES/'
-image_name = 'blank'
-image_file_type = '.png'
-difficulties = ['Easy', 'Medium', 'Hard']
-total_moves_simulated = 0
-depth_options = [1, 2, 3, 4, 5, 6]
-menu = sg.Column(
-    [[sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
-    default_value='White', key = '-COLOR-')],
-    [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
-enable_events=True, default_value='Easy', key = '-DROPDOWN-')],
-[ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value='2', key='-DEPTH-')],
-[sg.Button(button_text='ENTER', key='-diff_input-')]]
-)
-rank_letters = []
-rank_one = []
-rank_two = []
-rank_three = []
-rank_four = []
-rank_five = []
-rank_six = []
-rank_seven = []
-rank_eight = []
-letter_count = 0
-while len(rank_letters) < 9:
-    if letter_count == 0:
-        rank_letters.append(sg.Text(text=' ', size=(6,1)))
-    rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,1), font = 8))
-    letter_count += 1
-board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
-rank_count = 1
-for rank in board_gui:
-    column = 1
-    #TODO change this
-    while len(rank) < 9:
-        this_color = 'RED'
-        if rank_count % 2 == 1 and column % 2 == 1:
-            this_color = 'LIGHT GREEN'
-        elif rank_count % 2 == 0 and column % 2 == 0:
-            this_color = 'LIGHT GREEN'
-        else:
-            this_color = 'WHITE'
-        if column == 1:
-            rank.append(sg.Text(text = rank_count))
-        rank.append(sg.Button(size=(3,1), 
-        button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
-        image_filename=image_file_path + image_name + image_file_type))
-        column += 1
-    rank_count += 1  
-#Creates window layout salkdjfasdf  
-layout =    [[rank_eight],
-            [rank_seven],
-            [rank_six],
-            [rank_five],
-            [rank_four],
-            [rank_three],
-            [rank_two],
-            [rank_one],
-            [rank_letters],
-            [menu]]
-thisdict = {
-  "B": "wB",
-  "K": "wK",
-  "N": "wN",
-  "Q": "wQ",
-  "R": "wR",
-  "P": "wP",
-  "p": "bp",
-  "b": "bB",
-  "n": "bN",
-  "k": "bK",
-  "r": "bR",
-  "q": "bQ" }
 # #Initializes all the variables
 # board = chess.Board()
 # total_moves = []
@@ -89,6 +16,25 @@ thisdict = {
 # resign = False
 # pick_difficulty = False
 # total_moves_simulated = int(0)
+image_file_path = 'IMAGES/'
+image_name = 'blank'
+image_file_type = '.png'
+difficulties = ['Easy', 'Medium', 'Hard']
+total_moves_simulated = 0
+depth_options = [1, 2, 3, 4, 5, 6]
+thisdict = {
+    "B": "wB",
+    "K": "wK",
+    "N": "wN",
+    "Q": "wQ",
+    "R": "wR",
+    "P": "wP",
+    "p": "bp",
+    "b": "bB",
+    "n": "bN",
+    "k": "bK",
+    "r": "bR",
+    "q": "bQ" }
 pawntable = [
     0, 0, 0, 0, 0, 0, 0, 0,
     5, 10, 10, -20, -20, 10, 10, 5,
@@ -145,20 +91,6 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30]
 
 user_turn = True
-# # Function to print move list
-# def printmovelist():
-#     count = int(1)
-#     move_list = ""
-#     for m in total_moves :
-#         if count % 2 == 1:
-#             move_list += str(int(count / 2) + 1) + ". "
-#         move_list += m + " "
-#         if count % 20 == 0 :
-#             move_list += "\n"
-#         count += 1
-#     return move_list + "\n\n========================\n"
-
-
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
 def evaluate(board):
     global total_moves_simulated
@@ -307,15 +239,9 @@ def update_board(board):
     for rank in rank_strings:
         column_num = 1
         for file in rank:
-            if user_turn:
-                thing = 1
-                other_thing = 0
-            elif not user_turn:
-                thing = 0
-                other_thing = 1
-            if rank_num % 2 == thing and column_num % 2 == 1:
+            if rank_num % 2 == 1 and column_num % 2 == 1:
                     this_color = 'L'
-            elif rank_num % 2 == other_thing and column_num % 2 == 0:
+            elif rank_num % 2 == 0 and column_num % 2 == 0:
                 this_color = 'L'
             else:
                 this_color = 'W'
@@ -363,17 +289,86 @@ def ai_play(game, ai_diff):
         if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
             return 
     return game
+def create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn):
+    menu = sg.Column(
+        [[sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
+        default_value='White', key = '-COLOR-')],
+        [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
+    enable_events=True, default_value='Easy', key = '-DROPDOWN-')],
+    [ sg.Text(text = 'Pick a depth!', font = 12, key = '-DEPTH_TEXT-'), sg.Combo(depth_options, enable_events=True, default_value='2', key='-DEPTH-')],
+    [sg.Button(button_text='PLAY A GAME', key='-diff_input-')]]
+    )
+    rank_letters = []
+    rank_one = []
+    rank_two = []
+    rank_three = []
+    rank_four = []
+    rank_five = []
+    rank_six = []
+    rank_seven = []
+    rank_eight = []
+    letter_count = 0
+    while len(rank_letters) < 9:
+        if letter_count == 0:
+            rank_letters.append(sg.Text(text=' ', size=(6,1)))
+        rank_letters.append(sg.Text(text=chr(letter_count + 65), size=(6,1), font = 8))
+        letter_count += 1
+    board_gui = [rank_one, rank_two, rank_three,rank_four,rank_five,rank_six,rank_seven,rank_eight]
+    rank_count = 1
+    for rank in board_gui:
+        column = 1
+        while len(rank) < 9:
+            this_color = 'RED'
+            if rank_count % 2 == 1 and column % 2 == 1:
+                this_color = 'LIGHT GREEN'
+            elif rank_count % 2 == 0 and column % 2 == 0:
+                this_color = 'LIGHT GREEN'
+            else:
+                this_color = 'WHITE'
+            if column == 1:
+                rank.append(sg.Text(text = rank_count))
+            rank.append(sg.Button(size=(3,1), 
+            button_color=this_color, key = 'tile' + this_color[0:1] + chr(column+64) + str(rank_count), border_width=0,
+            image_filename=image_file_path + image_name + image_file_type))
+            column += 1
+        rank_count += 1    
+        if (user_turn) :
+
+            layout =    [[rank_eight],
+                        [rank_seven],
+                        [rank_six],
+                        [rank_five],
+                        [rank_four],
+                        [rank_three],
+                        [rank_two],
+                        [rank_one],
+                        [rank_letters],
+                        [menu]]
+        else:
+            layout =    [[rank_one],
+                        [rank_two],
+                        [rank_three],
+                        [rank_four],
+                        [rank_five],
+                        [rank_six],
+                        [rank_seven],
+                        [rank_eight],
+                        [rank_letters],
+                        [menu]]
+    return sg.Window('Chess', layout, element_justification='c', size=(800,800))
+
 ai_diff = 'Not Picked'
 depth = 1
 selected_square = ' '
 game = chess.Board()
+window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, True)
 # Create the Window
-window = sg.Window('Chess', layout, element_justification='c', size=(800,800))
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
         break
+    #WHEN user presses enter to start game
     elif event == '-diff_input-':
         chosen_difficulty = values['-DROPDOWN-']
         chosen_depth = values['-DEPTH-']
@@ -383,26 +378,35 @@ while True:
                 user_turn = True
             elif temp_value.lower() == 'black':
                 user_turn = False
-                game = game.mirror()
+                window.close()
+                window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, False)
+                window.read()
                 game = ai_play(game, ai_diff)
                 update_board(game)
             else:
-                sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
+                sg.popup_notify('Please choose white or black to play!\n',
                 icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
                 fade_in_duration=200)
                 continue
             try :
                 depth = int(chosen_depth)
                 if depth < 1 or depth > 6:
+                    sg.popup_notify('Invalid Depth\n', 'Please input a depth from 1 to 6',
+                    icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                    fade_in_duration=200)
                     continue
             except ValueError:
-                sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
+                sg.popup_notify('Invalid depth\n', 'Please input a depth with an integer value!',
                 icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
                 fade_in_duration=200)
                 continue
             ai_diff = chosen_difficulty
+            window['-COLOR_TEXT-'].update('You are ' + temp_value.upper())
             window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
-            window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
+            if chosen_difficulty == 'Easy' :
+                window['-DEPTH_TEXT-'].update('Depth: N/A')
+            else :
+                window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
             update_board(game)
         elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
             sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
