@@ -465,7 +465,7 @@ while True:
                 sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('R') + image_file_type), key = '-WROOK_PROMOTION-')]])
                 event, values = promotion_window.read()
                 if event == '-WQUEEN_PROMOTION-':
-                    promotion = 'Q'
+                    promotion = 'q'
                 elif event == '-WBISHOP_PROMOTION-':
                     promotion ='B'
                 elif event == '-BKNIGHT_PROMOTION-':
