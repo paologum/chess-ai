@@ -456,22 +456,21 @@ while True:
         try :
             promotion = ''
             #TODO finish figuring out promotion
-            print(game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol())
             if (int(event[6:7]) == 8 and user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'P') :
                 promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
                     [sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('Q') + image_file_type), key = '-WQUEEN_PROMOTION-'), 
                 sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('B') + image_file_type), key = '-WBISHOP_PROMOTION-')], 
                 [sg.Button(size = (2, 4), image_filename=(image_file_path + thisdict.get('N') + image_file_type), key = '-WKNIGHT_PROMOTION-'),
                 sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('R') + image_file_type), key = '-WROOK_PROMOTION-')]])
-                event, values = promotion_window.read()
-                if event == '-WQUEEN_PROMOTION-':
+                event_two, values_two = promotion_window.read()
+                if event_two == '-WQUEEN_PROMOTION-':
                     promotion = 'q'
-                elif event == '-WBISHOP_PROMOTION-':
-                    promotion ='B'
-                elif event == '-BKNIGHT_PROMOTION-':
-                    promotion = 'N'
-                elif event == '-BROOK_PROMOTION-':
-                    promotion = 'R'
+                elif event_two == '-WBISHOP_PROMOTION-':
+                    promotion ='b'
+                elif event_two == '-WKNIGHT_PROMOTION-':
+                    promotion = 'n'
+                elif event_two == '-WROOK_PROMOTION-':
+                    promotion = 'r'
                 promotion_window.close()
             elif (int(event[6:7]) == 1 and not user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'p')  :
                 promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
@@ -479,19 +478,17 @@ while True:
                 sg.Button(image_filename=(image_file_path + thisdict.get('b') + image_file_type), key = '-BBISHOP_PROMOTION-')], 
                 [sg.Button(image_filename=(image_file_path + thisdict.get('n') + image_file_type), key = '-BKNIGHT_PROMOTION-'),
                 sg.Button(image_filename=(image_file_path + thisdict.get('r') + image_file_type), key = '-BROOK_PROMOTION-')]])
-                event, values = promotion_window.read()
-                if event == '-BQUEEN_PROMOTION-':
+                event_two, values_two = promotion_window.read()
+                if event_two == '-BQUEEN_PROMOTION-':
                     promotion = 'q'
-                elif event == '-BBISHOP_PROMOTION-':
+                elif event_two == '-BBISHOP_PROMOTION-':
                     promotion = 'b'
-                elif event == '-BKNIGHT_PROMOTION-':
+                elif event_two == '-BKNIGHT_PROMOTION-':
                     promotion = 'n'
-                elif event == '-BROOK_PROMOTION-':
+                elif event_two == '-BROOK_PROMOTION-':
                     promotion = 'r'
                 promotion_window.close()
             uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower() + promotion)
-            print(selected_square[5: 7].lower() + event[5: 7].lower() + promotion)
-            print('boggle')
             for move in game.legal_moves:
                 if uci_move == move:
                     move_list.append(game.san(uci_move))
