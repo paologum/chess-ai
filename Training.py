@@ -1,69 +1,94 @@
 import chess
 import numpy as np
 import random
+from stockfish import Stockfish
 
 piece_list = ["R", "N", "B", "Q", "P"]
- 
- 
-def place_kings(brd):
-	while True:
-		rank_white, file_white, rank_black, file_black = random.randint(0,7), random.randint(0,7), random.randint(0,7), random.randint(0,7)
-		diff_list = [abs(rank_white - rank_black),  abs(file_white - file_black)]
-		if sum(diff_list) > 2 or set(diff_list) == set([0, 2]):
-			brd[rank_white][file_white], brd[rank_black][file_black] = "K", "k"
-			break
- 
-def populate_board(brd, wp, bp):
-	for x in range(2):
-		if x == 0:
-			piece_amount = wp
-			pieces = piece_list
-		else:
-			piece_amount = bp
-			pieces = [s.lower() for s in piece_list]
-		while piece_amount != 0:
-			piece_rank, piece_file = random.randint(0, 7), random.randint(0, 7)
-			piece = random.choice(pieces)
-			if brd[piece_rank][piece_file] == " " and pawn_on_promotion_square(piece, piece_rank) == False:
-				brd[piece_rank][piece_file] = piece
-				piece_amount -= 1
- 
-def fen_from_board(brd):
-	fen = ""
-	for x in brd:
-		n = 0
-		for y in x:
-			if y == " ":
-				n += 1
-			else:
-				if n != 0:
-					fen += str(n)
-				fen += y
-				n = 0
-		if n != 0:
-			fen += str(n)
-		fen += "/" if fen.count("/") < 7 else ""
-	fen += " w - - 0 1\n"
-	return fen
- 
-def pawn_on_promotion_square(pc, pr):
-	if pc == "P" and pr == 0:
-		return True
-	elif pc == "p" and pr == 7:
-		return True
-	return False
- 
- 
-def start(board):
-	piece_amount_white, piece_amount_black = random.randint(0, 15), random.randint(0, 15)
-	place_kings(board)
-	populate_board(board, piece_amount_white, piece_amount_black)
-	return fen_from_board(board)
- 
+
+stockfish = Stockfish(r"C:\Users\sunny\Downloads\stockfish_14.1_win_x64_avx2\stockfish_14.1_win_x64_avx2\stockfish_14.1_win_x64_avx2",
+parameters = {
+    "Write Debug Log": "false",
+    "Contempt": 0,
+    "Min Split Depth": 0,
+    "Threads": 2,
+    "Ponder": "false",
+    "Hash": 16,
+    "MultiPV": 1,
+    "Skill Level": 25,
+    "Move Overhead": 30,
+    "Minimum Thinking Time": 20,
+    "Slow Mover": 80,
+    "UCI_Chess960": "false",
+}
+)
  
 
-for i in range(10000):
-     board = [[" " for x in range(8)] for y in range(8)]
+def create_random_board() :
+	random_integer = random.randint(10,120)
+	init_board = chess.Board()
+	for i in range(random_integer) :
+		random_move = random.randint(0, init_board.legal_moves.count() - 1)
+		count = 0
+		for move in init_board.legal_moves :
+			if count == random_move:	
+				init_board.push(move)
+				break
+			count += 1
+	return init_board
+
+piece_dict  = {
+	"0" : "k",
+	"1" : "p",
+	"2" : "n",
+	"3" : "b",
+	"4" : "q",
+	"5" : "r",
+	"6" : "K",
+	"7" : "P",
+	"8" : "N",
+	"9" : "B",
+	"10" : "Q",
+	"11" : "R"
+}
+training_board = []
+training_answers = []
+for i in range(1):
+	random_board = create_random_board()
+	random_fen = random_board.fen()
+	print(random_fen)
+	stockfish.set_fen_position(random_fen)
+	rank_strings = random_fen.split('/')
+	eight_rank = rank_strings[7].split(' ')
+	rank_strings[7] = eight_rank[0]
+	final_array = []
+	for i in range(12):
+		piece_array = []
+		for rank in rank_strings:
+			piece_array_rank = []
+			for piece in rank :
+				try :
+					skip = int(piece)
+					for skipped_number in range(skip) :
+						piece_array_rank.append(0)
+				except :	
+					if piece == piece_dict.get(str(i)) :
+						piece_array_rank.append(1)
+					else :
+						piece_array_rank.append(0)
+			piece_array.append(piece_array_rank)
+		final_array.append(piece_array)
+	numpy_array = np.array(final_array)
+	type = stockfish.get_evaluation().get('type')
+	value = stockfish.get_evaluation().get('value')
+	training_answers.append(value)
+	training_board.append(final_array)
+	if (type == 'mate') :
+		value *= 1000000
+np.save('training_boards', training_board)
+np.save('traning_board_key', training_answers)
 
 
-np.savetxt('training_boards.csv', start(board), delimiter=",")
+
+
+
+

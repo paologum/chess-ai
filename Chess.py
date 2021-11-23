@@ -243,7 +243,6 @@ def getmove_alphabeta(depth, alpha, beta, board):
 def update_board(board):
     global user_turn
     rank_strings = board.fen().split('/')
-    print(rank_strings)
     eight_rank = rank_strings[7].split(' ')
     rank_strings[7] = eight_rank[0]
     rank_num = 8
