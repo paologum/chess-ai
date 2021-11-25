@@ -27,6 +27,8 @@ def create_random_board() :
 	random_integer = random.randint(10,120)
 	init_board = chess.Board()
 	for i in range(random_integer) :
+		if init_board.legal_moves.count() == 0 :
+			return init_board
 		random_move = random.randint(0, init_board.legal_moves.count() - 1)
 		count = 0
 		for move in init_board.legal_moves :
@@ -52,7 +54,7 @@ piece_dict  = {
 }
 training_board = []
 training_answers = []
-for i in range(1):
+for i in range(10000):
 	random_board = create_random_board()
 	random_fen = random_board.fen()
 	print(random_fen)
@@ -86,6 +88,9 @@ for i in range(1):
 		value *= 1000000
 np.save('training_boards', training_board)
 np.save('traning_board_key', training_answers)
+np.set_printoptions(threshold=np.inf)
+my_array = np.load('training_boards.npy', encoding='bytes')
+print(my_array)
 
 
 
