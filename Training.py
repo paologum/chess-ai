@@ -66,7 +66,6 @@ for i in range(10000):
 	final_array = []
 	sample_board_pieces_count = []
 	for i in range(12):
-		training_board_pieces_count = []
 		count = 0
 		piece_array = []
 		for rank in rank_strings:
