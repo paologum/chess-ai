@@ -54,6 +54,7 @@ piece_dict  = {
 }
 training_board = []
 training_answers = []
+final_count = []
 for i in range(10000):
 	random_board = create_random_board()
 	random_fen = random_board.fen()
@@ -63,7 +64,10 @@ for i in range(10000):
 	eight_rank = rank_strings[7].split(' ')
 	rank_strings[7] = eight_rank[0]
 	final_array = []
+	sample_board_pieces_count = []
 	for i in range(12):
+		training_board_pieces_count = []
+		count = 0
 		piece_array = []
 		for rank in rank_strings:
 			piece_array_rank = []
@@ -75,10 +79,13 @@ for i in range(10000):
 				except :	
 					if piece == piece_dict.get(str(i)) :
 						piece_array_rank.append(1)
+						count += 1
 					else :
 						piece_array_rank.append(0)
 			piece_array.append(piece_array_rank)
 		final_array.append(piece_array)
+		sample_board_pieces_count.append(count)
+	final_count.append(sample_board_pieces_count)
 	numpy_array = np.array(final_array)
 	type = stockfish.get_evaluation().get('type')
 	value = stockfish.get_evaluation().get('value')
@@ -86,10 +93,11 @@ for i in range(10000):
 	training_board.append(final_array)
 	if (type == 'mate') :
 		value *= 1000000
+np.save('training_board_piece_count', np.array(final_count))
 np.save('training_boards', training_board)
-np.save('traning_board_key', training_answers)
+np.save('training_board_key', training_answers)
 np.set_printoptions(threshold=np.inf)
-my_array = np.load('training_boards.npy', encoding='bytes')
+my_array = np.load('training_board_piece_count.npy', encoding='bytes')
 print(my_array)
 
 
