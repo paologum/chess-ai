@@ -6,6 +6,12 @@ import chess.polyglot
 import chess.pgn
 from random import randint
 import PySimpleGUI as sg
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+basic_model = keras.models.load_model('basic_model')
+
 
 #added a COMMENT
 sg.theme('DarkAmber')   # Add a touch of color
@@ -13,7 +19,7 @@ image_file_path = 'IMAGES/'
 image_name = 'blank'
 image_file_type = '.png'
 move_list = []
-difficulties = ['Easy', 'Medium', 'Hard']
+difficulties = ['Easy', 'Medium', 'Hard', 'AI']
 total_moves_simulated = 0
 depth_options = [1, 2, 3, 4, 5, 6]
 thisdict = {
@@ -102,7 +108,7 @@ def printmovelist():
     return move_list_string
 user_turn = True
 # Evaluation function implemented from https://medium.com/dscvitpune/lets-create-a-chess-ai-8542a12afef
-def evaluate(board):
+def standard_evaluate(board):
     global total_moves_simulated
     total_moves_simulated += 1
     # Checks game over rules and returns integers accordingly
@@ -155,15 +161,52 @@ def evaluate(board):
     #returns the evaluation in favor of whoever's turn it is
     return eval
 
+piece_dict  = {
+	"0" : "k",
+	"1" : "p",
+	"2" : "n",
+	"3" : "b",
+	"4" : "q",
+	"5" : "r",
+	"6" : "K",
+	"7" : "P",
+	"8" : "N",
+	"9" : "B",
+	"10" : "Q",
+	"11" : "R"
+}
+def basic_model_evaluate(board):
+    rank_strings = board.fen().split('/')
+    eight_rank = rank_strings[7].split(' ')
+    rank_strings[7] = eight_rank[0]
+    sample_board_pieces_count = []
+    final_count = []
+    for i in range(12):
+        count = 0
+        for rank in rank_strings:
+            for piece in rank :
+                try :
+                    skip = int(piece)
+                    for skipped_number in range(skip) :
+                        count += 0
+                except :	
+                    if piece == piece_dict.get(str(i)) :
+                        count += 1
+        sample_board_pieces_count.append(count)
+    final_count.append(sample_board_pieces_count)
+    return basic_model.predict(final_count)
+
 # MiniMax function
-def minimax(depth, board):
-    if depth == 0 :
-        return evaluate(board)
+def minimax(depth, board, ai_diff):
+    if depth == 0 and (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
+        return standard_evaluate(board)
+    elif depth == 0 and (ai_diff == 'AI'):
+        return basic_model_evaluate(board)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = minimax(depth - 1, board)
+            evaluation = minimax(depth - 1, board, ai_diff)
             board.pop()
             max_evaluation = max(max_evaluation, evaluation)
         return max_evaluation
@@ -171,13 +214,13 @@ def minimax(depth, board):
         min_evaluation = 100000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = minimax(depth - 1, board)
+            evaluation = minimax(depth - 1, board, ai_diff)
             board.pop()
             min_evaluation = min(evaluation, min_evaluation)
         return min_evaluation
 
 #Get a move from the minimax alogrithim
-def getmove(depth, board):
+def getmove(depth, board, ai_diff):
     best_move = chess.Move.null()
     if board.turn :
         best_evaluation = -999999999
@@ -185,7 +228,7 @@ def getmove(depth, board):
         best_evaluation = 999999999
     for some_move in board.legal_moves:
         board.push(some_move)
-        evaluation = minimax(depth - 1, board)
+        evaluation = minimax(depth - 1, board, ai_diff)
         board.pop()
         if board.turn and evaluation > best_evaluation:
             best_evaluation = evaluation
@@ -196,14 +239,16 @@ def getmove(depth, board):
     return best_move
 
 #Applies minimax with an alpha beta pruning
-def alphabeta(depth, alpha, beta, board) :
-    if depth == 0 :
-        return evaluate(board)
+def alphabeta(depth, alpha, beta, board, ai_diff) :
+    if depth == 0 and (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
+        return standard_evaluate(board)
+    elif depth == 0 and (ai_diff == 'AI'):
+        return basic_model_evaluate(board)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = alphabeta(depth - 1, alpha, beta, board)
+            evaluation = alphabeta(depth - 1, alpha, beta, board, ai_diff)
             board.pop()
             max_evaluation = max(max_evaluation, evaluation)
             alpha = max(alpha, evaluation)
@@ -214,7 +259,7 @@ def alphabeta(depth, alpha, beta, board) :
         min_evaluation = 100000000000
         for some_move in board.legal_moves :
             board.push(some_move)
-            evaluation = alphabeta(depth - 1, alpha, beta, board)
+            evaluation = alphabeta(depth - 1, alpha, beta, board, ai_diff)
             beta = min(evaluation, beta)
             board.pop()
             min_evaluation = min(evaluation, min_evaluation)
@@ -223,7 +268,7 @@ def alphabeta(depth, alpha, beta, board) :
         return min_evaluation
 
 #Get a move from the minimax alogrithim with alpha beta pruning
-def getmove_alphabeta(depth, alpha, beta, board):
+def getmove_alphabeta(depth, alpha, beta, board, ai_diff):
     best_move = chess.Move.null()
     if board.turn :
         best_evaluation = -999999999
@@ -231,7 +276,7 @@ def getmove_alphabeta(depth, alpha, beta, board):
         best_evaluation = 999999999
     for some_move in board.legal_moves:
         board.push(some_move)
-        evaluation = alphabeta(depth - 1, alpha, beta, board)
+        evaluation = alphabeta(depth - 1, alpha, beta, board, ai_diff)
         board.pop()
         if board.turn and evaluation > best_evaluation:
             best_evaluation = evaluation
@@ -287,12 +332,12 @@ def ai_play(game, ai_diff):
             else :
                 count += 1
     elif(ai_diff == 'Medium') :
-        move = getmove(depth, game)
-    elif(ai_diff == 'Hard') :
+        move = getmove(depth, game, ai_diff)
+    elif(ai_diff == 'Hard' or ai_diff == 'AI') :
         try:
             move = (chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(game).move)
         except Exception:
-            move = (getmove_alphabeta(depth, -1000000000, 1000000000, game))
+            move = (getmove_alphabeta(depth, -1000000000, 1000000000, game, ai_diff))
             
     move_list.append(game.san(move))
     game.push(move)
@@ -399,7 +444,7 @@ while True:
         chosen_difficulty = values['-DROPDOWN-']
         chosen_depth = values['-DEPTH-']
         #Start game!
-        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'): 
+        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard' or chosen_difficulty == 'AI'): 
             try :
                 depth = int(chosen_depth)
                 if depth < 1 or depth > 6:
