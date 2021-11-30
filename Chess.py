@@ -1,7 +1,6 @@
 
 from tkinter import image_types
 from typing import List
-from playsound import playsound
 import time
 import chess
 import chess.polyglot
@@ -517,7 +516,6 @@ try :
                     window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, chosen_difficulty, 'Black', depth)
                     window.finalize()
                     game = ai_play(game, chosen_difficulty)
-
                     update_board(game)
                 else:
                     sg.popup_notify('Please choose white or black to play!\n',
