@@ -1,6 +1,7 @@
 
 from tkinter import image_types
 from typing import List
+import time
 import chess
 import chess.polyglot
 import chess.pgn
@@ -9,8 +10,11 @@ import PySimpleGUI as sg
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+import glob
 
-basic_model = keras.models.load_model('basic_model')
+basic_model = keras.models.load_model('model_32')
+model_eight = keras.models.load_model('model_8')
+
 
 
 #added a COMMENT
@@ -19,7 +23,7 @@ image_file_path = 'IMAGES/'
 image_name = 'blank'
 image_file_type = '.png'
 move_list = []
-difficulties = ['Easy', 'Medium', 'Hard', 'AI']
+difficulties = ['Easy', 'Medium', 'Hard', '32 nodes', '8 nodes']
 total_moves_simulated = 0
 depth_options = [1, 2, 3, 4, 5, 6]
 thisdict = {
@@ -91,6 +95,17 @@ kingstable = [
     -30, -40, -40, -50, -50, -40, -40, -30]
 
 
+def finish_game():
+    if resign:
+        sg.popup('You resigned', 'Computer won...')
+    elif game.is_checkmate():
+        if game.outcome().winner == user_turn:
+            sg.popup('Checkmate.', 'You won!\n' + game.result())
+        else :
+            sg.popup('Checkmate', 'You lost!\n' + game.result())
+    else:
+        sg.popup('Stalemate.', 'You tied!\n' + game.result())
+    window.close()
 # Function to print move list
 def printmovelist():
     global move_list
@@ -175,7 +190,9 @@ piece_dict  = {
 	"10" : "Q",
 	"11" : "R"
 }
-def basic_model_evaluate(board):
+def basic_model_evaluate(board, ai_diff):
+    global total_moves_simulated
+    total_moves_simulated += 1
     rank_strings = board.fen().split('/')
     eight_rank = rank_strings[7].split(' ')
     rank_strings[7] = eight_rank[0]
@@ -194,14 +211,17 @@ def basic_model_evaluate(board):
                         count += 1
         sample_board_pieces_count.append(count)
     final_count.append(sample_board_pieces_count)
-    return basic_model.predict(final_count)
+    print(model_eight.predict(final_count)[0][0])
+    if (ai_diff == '8 nodes'): 
+        return model_eight.predict(final_count)[0][0]
+    return basic_model.predict(final_count)[0][0]
 
 # MiniMax function
 def minimax(depth, board, ai_diff):
     if depth == 0 and (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
         return standard_evaluate(board)
-    elif depth == 0 and (ai_diff == 'AI'):
-        return basic_model_evaluate(board)
+    elif depth == 0 and not (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
+        return basic_model_evaluate(board,ai_diff)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
@@ -242,8 +262,8 @@ def getmove(depth, board, ai_diff):
 def alphabeta(depth, alpha, beta, board, ai_diff) :
     if depth == 0 and (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
         return standard_evaluate(board)
-    elif depth == 0 and (ai_diff == 'AI'):
-        return basic_model_evaluate(board)
+    elif depth == 0 and not (ai_diff == 'Easy' or ai_diff == 'Medium' or ai_diff == 'Hard'):
+        return basic_model_evaluate(board, ai_diff)
     if board.turn :
         max_evaluation = -1000000000
         for some_move in board.legal_moves :
@@ -333,7 +353,7 @@ def ai_play(game, ai_diff):
                 count += 1
     elif(ai_diff == 'Medium') :
         move = getmove(depth, game, ai_diff)
-    elif(ai_diff == 'Hard' or ai_diff == 'AI') :
+    else :
         try:
             move = (chess.polyglot.MemoryMappedReader("human.bin").weighted_choice(game).move)
         except Exception:
@@ -341,14 +361,13 @@ def ai_play(game, ai_diff):
             
     move_list.append(game.san(move))
     game.push(move)
-    if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-            return 
     #Update total moves
     window['-TOTAL_MOVES-'].update('Total moves simulated: ' + str(total_moves_simulated))
     return game
 def create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, default_diff, default_color, default_depth):
     menu = sg.Column(
-        [[sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
+        [[sg.Text(text='Start from a previous game PGN!', font = 12, key='PGN-TEXT'), sg.Combo(file_names, enable_events=True, default_value = file_names[0], font='Times', key='PGN_FILE')],
+        [sg.Text(text='Choose a color!', font = 12, key='-COLOR_TEXT-'), sg.Combo(['White', 'Black'], enable_events=True,
         default_value=default_color, key = '-COLOR-')],
         [sg.Text(text='Pick an AI difficulty!', font = 12, key='-DIFFICULTY_TEXT-'), sg.Combo(difficulties, 
     enable_events=True, default_value=default_diff, key = '-DROPDOWN-')],
@@ -432,160 +451,190 @@ depth = 1
 resign = False
 selected_square = ' '
 game = chess.Board()
+# All files ending with .txt
+file_names = ['No PGN']
+for file in glob.glob("PGN/*.pgn"):
+    file_names.append(file[4:])
+
+def start_game_from_pgn(file_name):
+    global move_list
+    pgn = open('PGN/' + file_name)
+    parsed_game = chess.pgn.read_game(pgn)
+    for some_move in parsed_game.mainline_moves():
+        move_list.append(game.san(some_move))
+        game.push(some_move)
+    return game
 window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, True, 'Easy', 'White', '2')
 # Create the Window
 # Event Loop to process "events" and get the "values" of the inputs
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
-        break
-    #WHEN user presses enter to start game
-    elif event == '-diff_input-':
-        chosen_difficulty = values['-DROPDOWN-']
-        chosen_depth = values['-DEPTH-']
-        #Start game!
-        if ai_diff == 'Not Picked' and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard' or chosen_difficulty == 'AI'): 
-            try :
-                depth = int(chosen_depth)
-                if depth < 1 or depth > 6:
-                    sg.popup_notify('Invalid Depth\n', 'Please input a depth from 1 to 6',
+try :
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+            break
+        #WHEN user presses enter to start game
+        elif event == '-diff_input-':
+            chosen_difficulty = values['-DROPDOWN-']
+            chosen_depth = values['-DEPTH-']
+            boo = False
+            boo_two = False
+            for difficulty in difficulties : 
+                if difficulty == chosen_difficulty:
+                    boo = True
+                    break
+            for file in file_names : 
+                if file == values['PGN_FILE'] and not file == 'No PGN':
+                    boo_two = True
+                    break
+            #Start game!
+            if ai_diff == 'Not Picked' and boo: 
+                try :
+                    depth = int(chosen_depth)
+                    if depth < 1 or depth > 6:
+                        sg.popup_notify('Invalid Depth\n', 'Please input a depth from 1 to 6',
+                        icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                        fade_in_duration=200)
+                        continue
+                except ValueError:
+                    sg.popup_notify('Invalid depth\n', 'Please input a depth with an integer value!',
                     icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
                     fade_in_duration=200)
                     continue
-            except ValueError:
-                sg.popup_notify('Invalid depth\n', 'Please input a depth with an integer value!',
-                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-                fade_in_duration=200)
-                continue
-            temp_value = values['-COLOR-']
-            if temp_value.lower() == 'white':
-                user_turn = True
-            elif temp_value.lower() == 'black':
-                user_turn = False
-                window.close()
-                window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, chosen_difficulty, 'Black', depth)
-                window.finalize()
-                game = ai_play(game, chosen_difficulty)
-                update_board(game)
-            else:
-                sg.popup_notify('Please choose white or black to play!\n',
-                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-                fade_in_duration=200)
-                continue
-            
-            ai_diff = chosen_difficulty
-            window['-COLOR_TEXT-'].update('You are ' + temp_value.upper())
-            window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
-            if chosen_difficulty == 'Easy' :
-                window['-DEPTH_TEXT-'].update('Depth: N/A')
-            else :
-                window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
-            update_board(game)
-        #If already started, print error when changing settings!
-        elif not ai_diff == 'Not Picked'and (chosen_difficulty == 'Easy' or chosen_difficulty == 'Medium' or chosen_difficulty == 'Hard'):
-            sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
-            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-            fade_in_duration=200)
-    #When selecting a square, highlight it red!
-    elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile' and game.color_at(chess.parse_square(event[5:7].lower())) == user_turn:
-        window[event].update(button_color = 'RED')
-        selected_square = event
-    #When selecting a square before game started, print error
-    elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
-        sg.popup_notify('Game has not started\n', 'Choose the settings.',
-            icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
-            fade_in_duration=300)
-    #if you already selected a square, see if move is legal or not then proceed accordingly
-    elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
-        try :
-            promotion = ''
-            #TODO finish figuring out promotion
-            if (int(event[6:7]) == 8 and user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'P') :
-                promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
-                    [sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('Q') + image_file_type), key = '-WQUEEN_PROMOTION-'), 
-                sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('B') + image_file_type), key = '-WBISHOP_PROMOTION-')], 
-                [sg.Button(size = (2, 4), image_filename=(image_file_path + thisdict.get('N') + image_file_type), key = '-WKNIGHT_PROMOTION-'),
-                sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('R') + image_file_type), key = '-WROOK_PROMOTION-')]])
-                event_two, values_two = promotion_window.read()
-                if event_two == '-WQUEEN_PROMOTION-':
-                    promotion = 'q'
-                elif event_two == '-WBISHOP_PROMOTION-':
-                    promotion ='b'
-                elif event_two == '-WKNIGHT_PROMOTION-':
-                    promotion = 'n'
-                elif event_two == '-WROOK_PROMOTION-':
-                    promotion = 'r'
-                promotion_window.close()
-            elif (int(event[6:7]) == 1 and not user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'p')  :
-                promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
-                    [sg.Button(image_filename=(image_file_path + thisdict.get('q') + image_file_type), key = '-BQUEEN_PROMOTION-'), 
-                sg.Button(image_filename=(image_file_path + thisdict.get('b') + image_file_type), key = '-BBISHOP_PROMOTION-')], 
-                [sg.Button(image_filename=(image_file_path + thisdict.get('n') + image_file_type), key = '-BKNIGHT_PROMOTION-'),
-                sg.Button(image_filename=(image_file_path + thisdict.get('r') + image_file_type), key = '-BROOK_PROMOTION-')]])
-                event_two, values_two = promotion_window.read()
-                if event_two == '-BQUEEN_PROMOTION-':
-                    promotion = 'q'
-                elif event_two == '-BBISHOP_PROMOTION-':
-                    promotion = 'b'
-                elif event_two == '-BKNIGHT_PROMOTION-':
-                    promotion = 'n'
-                elif event_two == '-BROOK_PROMOTION-':
-                    promotion = 'r'
-                promotion_window.close()
-            uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower() + promotion)
-            for move in game.legal_moves:
-                if uci_move == move:
-                    move_list.append(game.san(uci_move))
-                    game.push(uci_move)
-                    #Update total moves
-                    window['-TOTAL_MOVES-'].update('Total moves simulated: ' + str(total_moves_simulated))
-                    update_board(game)
-            if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
-                break     
-            #Computer Moves
-            try:
-                #Play computer move
-                game = ai_play(game, ai_diff)
+                temp_value = values['-COLOR-']
                 
+                if boo_two:
+                    game = start_game_from_pgn(values['PGN_FILE'])
+                    if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                        update_board(game)
+                        finish_game()
+                        raise EOFError 
+                if temp_value.lower() == 'white':
+                    user_turn = True
+                elif temp_value.lower() == 'black':
+                    user_turn = False
+                    window.close()
+                    window = create_window(image_file_path, image_name, image_file_type, difficulties, depth_options, user_turn, chosen_difficulty, 'Black', depth)
+                    window.finalize()
+                    game = ai_play(game, chosen_difficulty)
+                    update_board(game)
+                else:
+                    sg.popup_notify('Please choose white or black to play!\n',
+                    icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                    fade_in_duration=200)
+                    continue
+                
+                ai_diff = chosen_difficulty
+                window['-COLOR_TEXT-'].update('You are ' + temp_value.upper())
+                window['-DIFFICULTY_TEXT-'].update('AI Difficulty: ' + values['-DROPDOWN-'])
+                if chosen_difficulty == 'Easy' :
+                    window['-DEPTH_TEXT-'].update('Depth: N/A')
+                else :
+                    window['-DEPTH_TEXT-'].update('Depth: ' + str(depth))
                 update_board(game)
+            #If already started, print error when changing settings!
+            elif not ai_diff == 'Not Picked'and boo:
+                sg.popup_notify('Game has started\n', 'Cannot change settings during game!',
+                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                fade_in_duration=200)
+        #When selecting a square, highlight it red!
+        elif not ai_diff == 'Not Picked' and selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile' and game.color_at(chess.parse_square(event[5:7].lower())) == user_turn:
+            window[event].update(button_color = 'RED')
+            selected_square = event
+        #When selecting a square before game started, print error
+        elif ai_diff == 'Not Picked'and event[int(0):int(4)] == 'tile':
+            sg.popup_notify('Game has not started\n', 'Choose the settings.',
+                icon=image_file_path + 'errorpopup' + image_file_type, display_duration_in_ms=100, 
+                fade_in_duration=300)
+        #if you already selected a square, see if move is legal or not then proceed accordingly
+        elif not selected_square == ' ' and user_turn == game.turn and event[int(0):int(4)] == 'tile':
+            try :
+                promotion = ''
+                #TODO finish figuring out promotion
+                if (int(event[6:7]) == 8 and user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'P') :
+                    promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
+                        [sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('Q') + image_file_type), key = '-WQUEEN_PROMOTION-'), 
+                    sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('B') + image_file_type), key = '-WBISHOP_PROMOTION-')], 
+                    [sg.Button(size = (2, 4), image_filename=(image_file_path + thisdict.get('N') + image_file_type), key = '-WKNIGHT_PROMOTION-'),
+                    sg.Button(size = (2, 4),image_filename=(image_file_path + thisdict.get('R') + image_file_type), key = '-WROOK_PROMOTION-')]])
+                    event_two, values_two = promotion_window.read()
+                    if event_two == '-WQUEEN_PROMOTION-':
+                        promotion = 'q'
+                    elif event_two == '-WBISHOP_PROMOTION-':
+                        promotion ='b'
+                    elif event_two == '-WKNIGHT_PROMOTION-':
+                        promotion = 'n'
+                    elif event_two == '-WROOK_PROMOTION-':
+                        promotion = 'r'
+                    promotion_window.close()
+                elif (int(event[6:7]) == 1 and not user_turn and game.piece_at((chess.parse_square(selected_square[5:7].lower()))).symbol() == 'p')  :
+                    promotion_window = sg.Window('Promote to which piece?', size = (400, 400), layout=[
+                        [sg.Button(image_filename=(image_file_path + thisdict.get('q') + image_file_type), key = '-BQUEEN_PROMOTION-'), 
+                    sg.Button(image_filename=(image_file_path + thisdict.get('b') + image_file_type), key = '-BBISHOP_PROMOTION-')], 
+                    [sg.Button(image_filename=(image_file_path + thisdict.get('n') + image_file_type), key = '-BKNIGHT_PROMOTION-'),
+                    sg.Button(image_filename=(image_file_path + thisdict.get('r') + image_file_type), key = '-BROOK_PROMOTION-')]])
+                    event_two, values_two = promotion_window.read()
+                    if event_two == '-BQUEEN_PROMOTION-':
+                        promotion = 'q'
+                    elif event_two == '-BBISHOP_PROMOTION-':
+                        promotion = 'b'
+                    elif event_two == '-BKNIGHT_PROMOTION-':
+                        promotion = 'n'
+                    elif event_two == '-BROOK_PROMOTION-':
+                        promotion = 'r'
+                    promotion_window.close()
+                uci_move = game.parse_uci(selected_square[5: 7].lower() + event[5: 7].lower() + promotion)
+                for move in game.legal_moves:
+                    if uci_move == move:
+                        move_list.append(game.san(uci_move))
+                        game.push(uci_move)
+                        #Update total moves
+                        window['-TOTAL_MOVES-'].update('Total moves simulated: ' + str(total_moves_simulated))
+                        update_board(game)
+                if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                    finish_game()
+                    raise EOFError    
+                #Computer Moves
+                try:
+                    #Play computer move
+                    start = time.time()
+                    game = ai_play(game, ai_diff)
+                    end = time.time()
+                    print(end - start)
+                    update_board(game)
+                    if (game.is_checkmate() or game.is_stalemate() or game.is_insufficient_material() or game.is_fivefold_repetition() or game.is_seventyfive_moves()) :
+                        finish_game()
+                        raise EOFError      
+                except ValueError:
+                    print('Value Error')
+                    break
             except ValueError:
-                print('Value Error')
-                break
-        except ValueError:
-            print('Illegal Move')
-        if (selected_square[4:5] == 'L'):
-            button_color_thing = 'LIGHT GREEN'
-        else :
-            button_color_thing = "WHITE"
-        window[selected_square].update(button_color = button_color_thing)
-        selected_square = ' '
-    elif event == '-MOVE_LIST-'  :
-        if (ai_diff == 'Not Picked') :
-            continue
-        new_layout = [
-            [sg.Text(text=printmovelist(), font = 12, key ='-MOVES-')],
-            [sg.Button(button_text = 'Cancel', key = '-CANCEL-')]
-        ]
-        popup = sg.Window('Move List', new_layout)
-        while(True) :
-            event_popup, values = popup.read()
-            if event_popup == sg.WIN_CLOSED or event_popup == '-CANCEL-' or event_popup == 'Cancel':
-                break
-        popup.close()
-    elif event == '-resign-' and not ai_diff == 'Not Picked':
-        resign = True
-        break
+                print('Illegal Move')
+            if (selected_square[4:5] == 'L'):
+                button_color_thing = 'LIGHT GREEN'
+            else :
+                button_color_thing = "WHITE"
+            window[selected_square].update(button_color = button_color_thing)
+            selected_square = ' '
+        elif event == '-MOVE_LIST-'  :
+            if (ai_diff == 'Not Picked') :
+                continue
+            new_layout = [
+                [sg.Text(text=printmovelist(), font = 12, key ='-MOVES-')],
+                [sg.Button(button_text = 'Cancel', key = '-CANCEL-')]
+            ]
+            popup = sg.Window('Move List', new_layout)
+            while(True) :
+                event_popup, values = popup.read()
+                if event_popup == sg.WIN_CLOSED or event_popup == '-CANCEL-' or event_popup == 'Cancel':
+                    break
+            popup.close()
+        elif event == '-resign-' and not ai_diff == 'Not Picked':
+            resign = True
+            finish_game()
+            raise EOFError
+except EOFError:
+    print('loss')
 
-
-
-#Find the winners of the game
-if resign:
-    sg.popup('You resigned', 'Computer won...')
-elif game.outcome().winner == user_turn:
-    sg.popup('Checkmate.', 'You won!')
-else :
-    sg.popup('Checkmate', 'You lost')
-window.close()
 
 
 

@@ -1,0 +1,24 @@
+[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2021.11.28"]
+[Round "?"]
+[White "cxvxvxcvcx"]
+[Black "Gloryends"]
+[Result "0-1"]
+[ECO "B10"]
+[WhiteElo "1509"]
+[BlackElo "1570"]
+[TimeControl "600"]
+[EndTime "22:45:55 PST"]
+[Termination "Gloryends won by checkmate"]
+
+1. e4 c6 2. c3 d5 3. exd5 cxd5 4. d4 Nf6 5. Bg5 Bf5 6. Nd2 e6 7. Ngf3 Be7 8.
+Qa4+ Nc6 9. Bb5 Qb6 10. Ne5 Rc8 11. O-O O-O 12. Bxc6 bxc6 13. Bxf6 Bxf6 14. Nd7
+Qxb2 15. Nb3 Bc2 16. Nxf8 Bxb3 17. Qxb3 Qxb3 18. axb3 Kxf8 19. Rxa7 c5 20. Rd1
+cxd4 21. cxd4 Rc3 22. b4 Bxd4 23. Ra8+ Ke7 24. h3 Be5 25. b5 Rb3 26. Ra7+ Kf6
+27. Rb7 g5 28. g3 h5 29. b6 h4 30. Kg2 hxg3 31. fxg3 Rxg3+ 32. Kf2 Rxh3 33. Rd7
+Rb3 34. b7 g4 35. Ke2 g3 36. Rf1+ Kg7 37. Rdxf7+ Kg6 38. R7f3 Rb2+ 39. Kd3 Rb3+
+40. Ke2 g2 41. Rg1 Rb2+ 42. Kd3 Bh2 43. Rxg2+ Rxg2 44. b8=Q Bxb8 45. Kd4 Ba7+
+46. Ke5 Re2+ 47. Kd6 d4 48. Ke7 Re3 49. Rf6+ Kg5 50. Rf8 d3 51. Rg8+ Kh6 52.
+Rh8+ Kg7 53. Rf8 d2 54. Rf7+ Kg6 55. Kd7 d1=Q+ 56. Kc8 Rc3+ 57. Kb7 Qb1+ 58.
+Kxa7 Ra3# 0-1
