@@ -1,19 +1,18 @@
 
-from tkinter import image_types
 from typing import List
 import time
 import chess
 import chess.polyglot
 import chess.pgn
 from random import randint
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import glob
 
-basic_model = keras.models.load_model('model_32')
-model_eight = keras.models.load_model('model_8')
+# basic_model = keras.models.load_model('model_32')
+# model_eight = keras.models.load_model('model_8')
 
 
 
